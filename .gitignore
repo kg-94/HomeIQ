@@ -1,0 +1,31 @@
+# IDE / Editor
+*.iml
+*.iws
+*.ipr
+.idea/
+.vscode/
+
+# Build and Output
+build/
+bin/
+gen/
+out/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Gradle Cache
+.gradle/
+
+# Local configurations
+local.properties
+.DS_Store
+
+# Log files
+*.log
+
+# Mobile specific
+*.apk
+*.aar
+*.ap_
+*.dex
