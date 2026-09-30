@@ -41,7 +41,7 @@ export default async function TaskPage({
 
   return (
     <div className="max-w-2xl space-y-6">
-      <Link href="/tasks" className="text-sm text-muted hover:text-foreground">← Tasks</Link>
+      <Link href="/tasks" className="-my-2 inline-block py-2 text-sm text-muted hover:text-foreground">← Tasks</Link>
       <h1 className="text-2xl font-semibold">{task.title}</h1>
       <Notice error={error} />
       {task.completed_at && (
@@ -72,7 +72,7 @@ export default async function TaskPage({
 
       <form action={deleteTask}>
         <input type="hidden" name="id" value={task.id} />
-        <button className="text-sm text-danger hover:underline">Delete task</button>
+        <button className="-my-2 py-2 text-sm text-danger hover:underline">Delete task</button>
       </form>
     </div>
   );

@@ -44,8 +44,8 @@ export default async function TasksPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Tasks</h1>
         <nav className="flex gap-1 rounded-md border border-border bg-surface p-1 text-sm">
-          <Link href="/tasks" className={`rounded px-3 py-1 ${!mine ? "bg-foreground/10 font-medium" : "text-muted"}`}>Everyone</Link>
-          <Link href="/tasks?mine=1" className={`rounded px-3 py-1 ${mine ? "bg-foreground/10 font-medium" : "text-muted"}`}>Mine</Link>
+          <Link href="/tasks" className={`rounded px-3 py-2 sm:py-1 ${!mine ? "bg-foreground/10 font-medium" : "text-muted"}`}>Everyone</Link>
+          <Link href="/tasks?mine=1" className={`rounded px-3 py-2 sm:py-1 ${mine ? "bg-foreground/10 font-medium" : "text-muted"}`}>Mine</Link>
         </nav>
       </div>
       <Notice error={error} />
@@ -77,8 +77,10 @@ export default async function TasksPage({
                     <button
                       aria-label={`Mark "${t.title}" done`}
                       title="Mark done"
-                      className="flex size-5 items-center justify-center rounded-full border-2 border-border hover:border-accent hover:bg-accent/10"
-                    />
+                      className="-m-3 flex size-11 items-center justify-center rounded-full"
+                    >
+                      <span className="size-5 rounded-full border-2 border-border hover:border-accent hover:bg-accent/10" />
+                    </button>
                   </form>
                   <Link href={`/tasks/${t.id}`} className="min-w-0 flex-1">
                     <span className="block truncate">{t.title}</span>

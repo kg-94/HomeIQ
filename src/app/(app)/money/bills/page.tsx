@@ -55,12 +55,12 @@ export default async function BillsPage({
                   </span>
                 </Link>
                 <span className={`text-sm ${overdue ? "text-danger" : "text-muted"}`}>{formatDue(b.due_date, today)}</span>
-                <form action={payBill} className="flex items-center gap-2">
+                <form action={payBill} className="flex w-full items-center gap-2 sm:w-auto">
                   <input type="hidden" name="bill" value={b.id} />
                   <label className="sr-only" htmlFor={`amount-${b.id}`}>Amount paid</label>
-                  <input id={`amount-${b.id}`} name="amount" inputMode="decimal" defaultValue={b.amount.toFixed(2)} className="input w-28 py-1 text-right tabular-nums" />
+                  <input id={`amount-${b.id}`} name="amount" inputMode="decimal" defaultValue={b.amount.toFixed(2)} className="input w-28 shrink-0 py-1 text-right tabular-nums" />
                   <label className="sr-only" htmlFor={`paid_by-${b.id}`}>Paid by</label>
-                  <select id={`paid_by-${b.id}`} name="paid_by" defaultValue={user.id} className="input w-auto py-1">
+                  <select id={`paid_by-${b.id}`} name="paid_by" defaultValue={user.id} className="input min-w-0 flex-1 py-1 sm:w-auto sm:flex-none">
                     {members?.map((m) => <option key={m.user_id} value={m.user_id}>{m.display_name}</option>)}
                   </select>
                   <button className="btn-ghost">Paid</button>

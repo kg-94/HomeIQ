@@ -39,7 +39,7 @@ export default async function ItemPage({
 
   return (
     <div className="max-w-2xl space-y-6">
-      <Link href="/inventory" className="text-sm text-muted hover:text-foreground">← Inventory</Link>
+      <Link href="/inventory" className="-my-2 inline-block py-2 text-sm text-muted hover:text-foreground">← Inventory</Link>
       <div>
         <h1 className="text-2xl font-semibold">{item.name}</h1>
         <p className="mt-1 text-sm text-muted">
@@ -111,7 +111,7 @@ export default async function ItemPage({
 
       <form action={deleteItem}>
         <input type="hidden" name="id" value={item.id} />
-        <button className="text-sm text-danger hover:underline">Delete item and its files</button>
+        <button className="-my-2 py-2 text-sm text-danger hover:underline">Delete item and its files</button>
       </form>
     </div>
   );

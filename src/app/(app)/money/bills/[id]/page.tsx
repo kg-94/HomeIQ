@@ -35,7 +35,7 @@ export default async function BillPage({
 
   return (
     <div className="max-w-2xl space-y-6">
-      <Link href="/money/bills" className="text-sm text-muted hover:text-foreground">← Bills</Link>
+      <Link href="/money/bills" className="-my-2 inline-block py-2 text-sm text-muted hover:text-foreground">← Bills</Link>
       <h1 className="text-2xl font-semibold">{bill.name}</h1>
       <Notice error={error} />
       {bill.paid_at && <Notice message={`Paid on ${new Date(bill.paid_at).toLocaleDateString("en-IN", { timeZone: timezone })}.`} />}
@@ -64,7 +64,7 @@ export default async function BillPage({
 
       <form action={deleteBill}>
         <input type="hidden" name="id" value={bill.id} />
-        <button className="text-sm text-danger hover:underline">Delete bill (past payments stay in expenses)</button>
+        <button className="-my-2 py-2 text-sm text-danger hover:underline">Delete bill (past payments stay in expenses)</button>
       </form>
     </div>
   );

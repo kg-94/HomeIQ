@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import CopyLink from "@/components/copy-link";
 import Notice from "@/components/notice";
+import { logout } from "@/app/auth/actions";
 import { getHouseholdContext } from "@/lib/household";
 import { createInvite, removeMember, renameHousehold, revokeInvite } from "./actions";
 
@@ -66,7 +67,7 @@ export default async function HouseholdPage({
                 {(isMe || isOwner) && (
                   <form action={removeMember}>
                     <input type="hidden" name="user_id" value={m.user_id} />
-                    <button className="text-sm text-danger hover:underline">{isMe ? "Leave" : "Remove"}</button>
+                    <button className="-my-2 py-2 text-sm text-danger hover:underline">{isMe ? "Leave" : "Remove"}</button>
                   </form>
                 )}
               </li>
@@ -82,7 +83,7 @@ export default async function HouseholdPage({
             Enter the email of their Google or Discord account. Only that account can use the
             link, and it expires after 7 days.
           </p>
-          <form action={createInvite} className="mt-4 flex gap-3">
+          <form action={createInvite} className="mt-4 flex flex-col gap-3 sm:flex-row">
             <label htmlFor="email" className="sr-only">Email</label>
             <input id="email" name="email" type="email" placeholder="name@gmail.com" required className="input" />
             <button className="btn shrink-0">Create invite</button>
@@ -91,7 +92,7 @@ export default async function HouseholdPage({
           {invites && invites.length > 0 && (
             <ul className="mt-4 divide-y divide-border">
               {invites.map((inv) => (
-                <li key={inv.id} className="flex items-center justify-between gap-3 py-3 text-sm">
+                <li key={inv.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
                   <span className="truncate">
                     {inv.email}
                     <span className="block text-xs text-muted">
@@ -102,7 +103,7 @@ export default async function HouseholdPage({
                     <CopyLink path={`/invite/${inv.token}`} />
                     <form action={revokeInvite}>
                       <input type="hidden" name="id" value={inv.id} />
-                      <button className="text-sm text-danger hover:underline">Revoke</button>
+                      <button className="-my-2 py-2 text-sm text-danger hover:underline">Revoke</button>
                     </form>
                   </span>
                 </li>
@@ -111,6 +112,10 @@ export default async function HouseholdPage({
           )}
         </section>
       )}
+
+      <form action={logout} className="sm:hidden">
+        <button className="btn-ghost w-full">Log out</button>
+      </form>
     </div>
   );
 }

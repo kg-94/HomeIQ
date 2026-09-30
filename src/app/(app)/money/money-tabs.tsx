@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function MoneyTabs({ current }: { current: "overview" | "bills" }) {
   const tab = (key: typeof current, href: string, label: string) => (
-    <Link href={href} className={`rounded px-3 py-1 ${current === key ? "bg-foreground/10 font-medium" : "text-muted"}`}>
+    <Link href={href} className={`rounded px-3 py-2 sm:py-1 ${current === key ? "bg-foreground/10 font-medium" : "text-muted"}`}>
       {label}
     </Link>
   );

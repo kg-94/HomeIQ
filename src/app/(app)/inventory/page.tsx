@@ -31,9 +31,9 @@ export default async function InventoryPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Inventory</h1>
-        <form className="flex gap-2" role="search">
+        <form className="w-full sm:w-auto" role="search">
           <label htmlFor="q" className="sr-only">Search</label>
-          <input id="q" name="q" defaultValue={q} placeholder="Search items" className="input w-56" />
+          <input id="q" name="q" defaultValue={q} placeholder="Search items" className="input w-full sm:w-56" />
         </form>
       </div>
       <Notice error={error} />

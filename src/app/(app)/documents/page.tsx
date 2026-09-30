@@ -39,7 +39,7 @@ export default async function DocumentsPage({
       <Link
         key={key ?? "all"}
         href={`/documents${params.size ? `?${params}` : ""}`}
-        className={`rounded-full border px-3 py-1 text-sm ${on ? "border-accent bg-accent/10 text-accent" : "border-border text-muted hover:text-foreground"}`}
+        className={`rounded-full border px-3 py-2 text-sm sm:py-1 ${on ? "border-accent bg-accent/10 text-accent" : "border-border text-muted hover:text-foreground"}`}
       >
         {label}
       </Link>
@@ -50,10 +50,10 @@ export default async function DocumentsPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Documents</h1>
-        <form className="flex gap-2" role="search">
+        <form className="w-full sm:w-auto" role="search">
           {category && <input type="hidden" name="c" value={category} />}
           <label htmlFor="q" className="sr-only">Search</label>
-          <input id="q" name="q" defaultValue={q} placeholder="Search documents" className="input w-56" />
+          <input id="q" name="q" defaultValue={q} placeholder="Search documents" className="input w-full sm:w-56" />
         </form>
       </div>
       <Notice error={error} />

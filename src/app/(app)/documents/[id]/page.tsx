@@ -37,7 +37,7 @@ export default async function DocumentPage({
 
   return (
     <div className="space-y-6">
-      <Link href="/documents" className="text-sm text-muted hover:text-foreground">← Documents</Link>
+      <Link href="/documents" className="-my-2 inline-block py-2 text-sm text-muted hover:text-foreground">← Documents</Link>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-semibold">{doc.name}</h1>
@@ -56,7 +56,15 @@ export default async function DocumentPage({
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
         <div className="overflow-hidden rounded-lg border border-border bg-surface">
           {doc.mime === "application/pdf" ? (
-            <iframe src={src} title={doc.name} className="h-[75vh] w-full" />
+            <>
+              <iframe src={src} title={doc.name} className="hidden h-[75vh] w-full md:block" />
+              <a href={src} target="_blank" rel="noopener" className="flex flex-col items-center gap-3 p-10 text-center md:hidden">
+                <svg aria-hidden viewBox="0 0 24 24" className="size-10 text-accent" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5" />
+                </svg>
+                <span className="btn">Open PDF</span>
+              </a>
+            </>
           ) : PREVIEWABLE_IMAGES.includes(doc.mime) ? (
             // eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL, nothing to optimise
             <img src={src} alt={doc.name} className="mx-auto max-h-[75vh] object-contain" />
@@ -73,7 +81,7 @@ export default async function DocumentPage({
           </form>
           <form action={deleteDocument}>
             <input type="hidden" name="id" value={doc.id} />
-            <button className="text-sm text-danger hover:underline">Delete document</button>
+            <button className="-my-2 py-2 text-sm text-danger hover:underline">Delete document</button>
           </form>
         </aside>
       </div>

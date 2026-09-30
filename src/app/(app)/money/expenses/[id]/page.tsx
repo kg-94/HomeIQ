@@ -33,7 +33,7 @@ export default async function ExpensePage({
 
   return (
     <div className="max-w-2xl space-y-6">
-      <Link href="/money" className="text-sm text-muted hover:text-foreground">← Money</Link>
+      <Link href="/money" className="-my-2 inline-block py-2 text-sm text-muted hover:text-foreground">← Money</Link>
       <h1 className="text-2xl font-semibold">{expense.description}</h1>
       <Notice error={error} />
       <section className="card">
@@ -48,7 +48,7 @@ export default async function ExpensePage({
       </section>
       <form action={deleteExpense}>
         <input type="hidden" name="id" value={expense.id} />
-        <button className="text-sm text-danger hover:underline">Delete expense</button>
+        <button className="-my-2 py-2 text-sm text-danger hover:underline">Delete expense</button>
       </form>
     </div>
   );
