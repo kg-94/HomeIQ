@@ -67,11 +67,13 @@ export async function acceptInvite(formData: FormData) {
 export async function createInvite(formData: FormData) {
   const parsed = z.string().trim().toLowerCase().email("Enter a valid email").safeParse(formData.get("email"));
   if (!parsed.success) return back("/household", "error", parsed.error.issues[0].message);
+  // Set when inviting someone to take over an offline member's place.
+  const memberId = z.guid().safeParse(formData.get("member_id")).data ?? null;
 
   const { supabase, active } = await getHouseholdContext();
   const { error } = await supabase
     .from("household_invites")
-    .insert({ household_id: active.household.id, email: parsed.data });
+    .insert({ household_id: active.household.id, email: parsed.data, member_id: memberId });
   if (error) return back("/household", "error", error.message);
 
   revalidatePath("/household");
@@ -128,7 +130,8 @@ export async function deleteHousehold(formData: FormData) {
   const { count } = await supabase
     .from("household_members")
     .select("*", { count: "exact", head: true })
-    .eq("household_id", hid);
+    .eq("household_id", hid)
+    .eq("is_offline", false); // offline members go with the household
   if (active.role !== "owner" || count !== 1)
     return back("/household", "error", "Only the owner can delete a household, once everyone else has left");
 
@@ -148,4 +151,16 @@ export async function deleteHousehold(formData: FormData) {
   (await cookies()).delete(HOUSEHOLD_COOKIE);
   revalidatePath("/", "layout");
   redirect("/");
+}
+
+/** Someone without an account (a parent, a child, house help); owners only. */
+export async function addOfflineMember(formData: FormData) {
+  const parsed = name.safeParse(formData.get("display_name"));
+  if (!parsed.success) return back("/household", "error", parsed.error.issues[0].message);
+
+  const { supabase, active } = await getHouseholdContext();
+  const { error } = await supabase.rpc("add_offline_member", { p_household: active.household.id, p_name: parsed.data });
+  if (error) return back("/household", "error", error.message);
+  revalidatePath("/", "layout");
+  back("/household", "message", `Added ${parsed.data}. They can now be assigned tasks and included in expenses.`);
 }

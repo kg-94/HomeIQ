@@ -89,21 +89,21 @@ export async function recordSettlement(formData: FormData) {
     })
     .refine((s) => s.from_user !== s.to_user, "Pick two different people")
     .safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return back("/money", parsed.error.issues[0].message);
+  if (!parsed.success) return back("/money/splits", parsed.error.issues[0].message);
 
   const { supabase, active } = await getHouseholdContext();
   const { error } = await supabase
     .from("settlements")
     .insert({ ...parsed.data, amount: fromPaise(parsed.data.amount), household_id: active.household.id });
-  if (error) return back("/money", error.message);
+  if (error) return back("/money/splits", error.message);
   revalidatePath("/", "layout");
-  redirect("/money");
+  redirect("/money/splits?message=Payment recorded");
 }
 
 export async function deleteSettlement(formData: FormData) {
   const { supabase } = await getHouseholdContext();
   const { error } = await supabase.from("settlements").delete().eq("id", String(formData.get("id")));
-  if (error) return back("/money", error.message);
+  if (error) return back("/money/splits", error.message);
   revalidatePath("/", "layout");
 }
 

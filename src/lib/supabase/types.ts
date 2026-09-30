@@ -258,6 +258,7 @@ export type Database = {
           household_id: string
           id: string
           invited_by: string
+          member_id: string | null
           token: string
         }
         Insert: {
@@ -269,6 +270,7 @@ export type Database = {
           household_id: string
           id?: string
           invited_by?: string
+          member_id?: string | null
           token?: string
         }
         Update: {
@@ -280,6 +282,7 @@ export type Database = {
           household_id?: string
           id?: string
           invited_by?: string
+          member_id?: string | null
           token?: string
         }
         Relationships: [
@@ -297,6 +300,7 @@ export type Database = {
           created_at: string
           display_name: string
           household_id: string
+          is_offline: boolean
           role: string
           user_id: string
         }
@@ -304,6 +308,7 @@ export type Database = {
           created_at?: string
           display_name: string
           household_id: string
+          is_offline?: boolean
           role?: string
           user_id: string
         }
@@ -311,6 +316,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           household_id?: string
+          is_offline?: boolean
           role?: string
           user_id?: string
         }
@@ -681,6 +687,10 @@ export type Database = {
     Functions: {
       accept_invite: {
         Args: { invite_token: string; member_name: string }
+        Returns: string
+      }
+      add_offline_member: {
+        Args: { p_household: string; p_name: string }
         Returns: string
       }
       complete_task: { Args: { task: string }; Returns: undefined }

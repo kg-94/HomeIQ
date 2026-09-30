@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import CopyLink from "@/components/copy-link";
 import Notice from "@/components/notice";
 import { getHouseholdContext } from "@/lib/household";
-import { createInvite, deleteHousehold, removeMember, renameHousehold, revokeInvite } from "./actions";
+import { addOfflineMember, createInvite, deleteHousehold, removeMember, renameHousehold, revokeInvite } from "./actions";
 
 export const metadata: Metadata = { title: "Household" };
 
@@ -17,11 +17,11 @@ export default async function HouseholdPage({
   const isOwner = active.role === "owner";
 
   const [{ data: members }, { data: invites }] = await Promise.all([
-    supabase.from("household_members").select("user_id, role, display_name").eq("household_id", hid).order("created_at"),
+    supabase.from("household_members").select("user_id, role, display_name, is_offline").eq("household_id", hid).order("created_at"),
     isOwner
       ? supabase
           .from("household_invites")
-          .select("id, email, token, expires_at")
+          .select("id, email, token, expires_at, member_id")
           .eq("household_id", hid)
           .is("accepted_at", null)
           .gt("expires_at", new Date().toISOString())
@@ -29,8 +29,10 @@ export default async function HouseholdPage({
       : Promise.resolve({ data: [] }),
   ]);
 
-  // The last owner can't leave; if nobody else is left they can delete instead.
-  const isSoleOwner = isOwner && members?.length === 1;
+  // The last owner can't leave; if no one else has an account they can delete
+  // instead (offline members are removed with the household).
+  const isSoleOwner = isOwner && !members?.some((m) => m.user_id !== user.id && !m.is_offline);
+  const nameOf = (id: string | null) => members?.find((m) => m.user_id === id)?.display_name;
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -60,22 +62,54 @@ export default async function HouseholdPage({
           {members?.map((m) => {
             const isMe = m.user_id === user.id;
             return (
-              <li key={m.user_id} className="flex items-center justify-between py-3">
-                <span>
-                  {m.display_name}
-                  {isMe && <span className="text-muted"> (you)</span>}
-                  <span className="ml-2 rounded bg-foreground/5 px-1.5 py-0.5 text-xs text-muted">{m.role}</span>
-                </span>
-                {(isMe || isOwner) && !(isMe && isSoleOwner) && (
-                  <form action={removeMember}>
-                    <input type="hidden" name="user_id" value={m.user_id} />
-                    <button className="-my-2 py-2 text-sm text-danger hover:underline">{isMe ? "Leave" : "Remove"}</button>
-                  </form>
+              <li key={m.user_id} className="py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="min-w-0">
+                    {m.display_name}
+                    {isMe && <span className="text-muted"> (you)</span>}
+                    <span className="ml-2 rounded bg-foreground/5 px-1.5 py-0.5 text-xs text-muted">
+                      {m.is_offline ? "no account" : m.role}
+                    </span>
+                  </span>
+                  {(isMe || isOwner) && !(isMe && isSoleOwner) && (
+                    <form action={removeMember}>
+                      <input type="hidden" name="user_id" value={m.user_id} />
+                      <button className="-my-2 py-2 text-sm text-danger hover:underline">{isMe ? "Leave" : "Remove"}</button>
+                    </form>
+                  )}
+                </div>
+                {isOwner && m.is_offline && (
+                  <details className="mt-1">
+                    <summary className="cursor-pointer text-xs text-muted">Link to an account</summary>
+                    <p className="mt-2 text-xs text-muted">
+                      Invite them by the email of their Google or Discord account. When they accept, they take over{" "}
+                      {m.display_name}&apos;s tasks, expenses, balance and income.
+                    </p>
+                    <form action={createInvite} className="mt-2 flex flex-col gap-2 sm:flex-row">
+                      <input type="hidden" name="member_id" value={m.user_id} />
+                      <label htmlFor={`link-${m.user_id}`} className="sr-only">Their email</label>
+                      <input id={`link-${m.user_id}`} name="email" type="email" placeholder="name@gmail.com" required className="input" />
+                      <button className="btn-ghost shrink-0">Create invite</button>
+                    </form>
+                  </details>
                 )}
               </li>
             );
           })}
         </ul>
+        {isOwner && (
+          <form action={addOfflineMember} className="mt-4 border-t border-border pt-4">
+            <label htmlFor="display_name" className="label">Add someone without an account</label>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input id="display_name" name="display_name" placeholder="e.g. Maa, Rohan, Sunita (help)" required maxLength={80} className="input" />
+              <button className="btn-ghost shrink-0">Add member</button>
+            </div>
+            <p className="mt-1 text-xs text-muted">
+              For family or help who won&apos;t log in. You can assign them tasks and include them in expenses, and link
+              them to an account later.
+            </p>
+          </form>
+        )}
       </section>
 
       {isOwner && (
@@ -97,6 +131,7 @@ export default async function HouseholdPage({
                 <li key={inv.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
                   <span className="truncate">
                     {inv.email}
+                    {inv.member_id && nameOf(inv.member_id) && <span className="text-muted"> · as {nameOf(inv.member_id)}</span>}
                     <span className="block text-xs text-muted">
                       Expires {new Date(inv.expires_at).toLocaleDateString()}
                     </span>
@@ -119,7 +154,7 @@ export default async function HouseholdPage({
         <section className="card border-danger/40">
           <h2 className="font-medium text-danger">Delete household</h2>
           <p className="mt-1 text-sm text-muted">
-            You&apos;re the only member, so you can&apos;t leave &mdash; but you can delete it. This permanently removes
+            You&apos;re the only member with an account, so you can&apos;t leave &mdash; but you can delete it. This permanently removes
             its tasks, items, documents and files, bills and expenses. It can&apos;t be undone.
           </p>
           <form action={deleteHousehold} className="mt-4 flex flex-col gap-3 sm:flex-row">

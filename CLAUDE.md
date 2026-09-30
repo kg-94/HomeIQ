@@ -28,6 +28,7 @@ Supabase's Email and Phone providers should stay disabled, or accounts could be 
 ## Conventions
 - Every table carries `household_id`; RLS on every table uses `is_member(household_id)`. No table ships without RLS, and every new table gets cases in `supabase/tests/rls.sql`.
 - Active household = `hid` cookie, resolved by `getHouseholdContext()` in `src/lib/household.ts`.
+- Members can be **offline** (`household_members.is_offline`, no account). "Person" columns (`paid_by`, `expense_splits.user_id`, settlement `from_user`/`to_user`, `received_by`, `assignee_id`) hold *member* ids, not necessarily auth users: no FK to `auth.users`; validate with `is_household_user()` in RLS. Linking an offline member to an account (`accept_invite` with `member_id`) rewrites those columns, so any new person column must be added there too.
 - Money is `numeric(12,2)`; never floats.
 - Secrets live in `.env.local` (git-ignored), never in the repo.
 - Version: the husky pre-commit hook bumps the patch version on every commit; don't bump it by hand. The footer shows `v<version> · <commit>`.
