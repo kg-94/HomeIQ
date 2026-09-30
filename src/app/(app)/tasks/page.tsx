@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Notice from "@/components/notice";
+import { TagChips, TagFilter } from "@/components/tags";
 import { dueGroup, formatDue, repeatLabel, todayIn, type DueGroup } from "@/lib/dates";
 import { getHouseholdContext } from "@/lib/household";
+import { allTags } from "@/lib/tags";
 import { completeTask, createTask } from "./actions";
 import TaskForm from "./task-form";
 
@@ -17,16 +19,17 @@ const GROUPS: { key: DueGroup; title: string }[] = [
 export default async function TasksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; mine?: string; item?: string }>;
+  searchParams: Promise<{ tag?: string; error?: string; mine?: string; item?: string }>;
 }) {
-  const { error, mine, item } = await searchParams;
+  const { tag, error, mine, item } = await searchParams;
   const { supabase, user, active } = await getHouseholdContext();
   const hid = active.household.id;
   const today = todayIn(active.household.timezone);
 
   let query = supabase
     .from("tasks")
-    .select("id, title, due_date, repeat_every, repeat_unit, assignee_id, item:items(name)")
+    .select("id, title, due_date, repeat_every, repeat_unit, assignee_id, item:items(name), tags")
+    .contains("tags", tag ? [tag] : [])
     .eq("household_id", hid)
     .is("completed_at", null)
     .order("due_date");
@@ -39,6 +42,8 @@ export default async function TasksPage({
   ]);
   const nameOf = new Map(members?.map((m) => [m.user_id, m.display_name]));
 
+  const { data: tagRows } = await supabase.from("tasks").select("tags").eq("household_id", active.household.id);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -49,6 +54,7 @@ export default async function TasksPage({
         </nav>
       </div>
       <Notice error={error} />
+      <TagFilter tags={allTags(tagRows)} current={tag} href={(t) => (t ? `/tasks?tag=${encodeURIComponent(t)}` : "/tasks")} />
 
       <details className="card group" open={tasks?.length === 0 || !!item}>
         <summary className="cursor-pointer font-medium marker:text-muted">Add a task</summary>
@@ -89,6 +95,7 @@ export default async function TasksPage({
                         .filter(Boolean)
                         .join(" · ")}
                     </span>
+                    <TagChips tags={t.tags} className="mt-1" />
                   </Link>
                   <span className={`shrink-0 text-sm ${key === "overdue" ? "text-danger" : "text-muted"}`}>
                     {formatDue(t.due_date, today)}

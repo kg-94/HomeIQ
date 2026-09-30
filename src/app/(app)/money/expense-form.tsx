@@ -1,4 +1,5 @@
 import CategorySelect from "@/components/category-select";
+import { TagInput } from "@/components/tags";
 
 type Member = { user_id: string; display_name: string };
 type Expense = {
@@ -8,6 +9,7 @@ type Expense = {
   amount: number;
   paid_by: string;
   spent_on: string;
+  tags?: string[];
   splits: { user_id: string; share: number }[];
 };
 
@@ -93,6 +95,9 @@ export default function ExpenseForm({
         </p>
       </fieldset>
 
+      <div className="sm:col-span-2">
+        <TagInput defaultValue={expense?.tags} />
+      </div>
       <div className="sm:col-span-2">
         <button className="btn">{expense ? "Save" : "Add expense"}</button>
       </div>

@@ -30,6 +30,7 @@ export type Database = {
           payee: string | null
           repeat_every: number | null
           repeat_unit: string | null
+          tags: string[]
         }
         Insert: {
           amount: number
@@ -46,6 +47,7 @@ export type Database = {
           payee?: string | null
           repeat_every?: number | null
           repeat_unit?: string | null
+          tags?: string[]
         }
         Update: {
           amount?: number
@@ -62,6 +64,7 @@ export type Database = {
           payee?: string | null
           repeat_every?: number | null
           repeat_unit?: string | null
+          tags?: string[]
         }
         Relationships: [
           {
@@ -146,6 +149,7 @@ export type Database = {
           id: string
           paid_by: string
           spent_on: string
+          tags: string[]
         }
         Insert: {
           amount: number
@@ -158,6 +162,7 @@ export type Database = {
           id?: string
           paid_by: string
           spent_on: string
+          tags?: string[]
         }
         Update: {
           amount?: number
@@ -170,6 +175,7 @@ export type Database = {
           id?: string
           paid_by?: string
           spent_on?: string
+          tags?: string[]
         }
         Relationships: [
           {
@@ -201,6 +207,7 @@ export type Database = {
           name: string
           size: number
           storage_path: string
+          tags: string[]
           uploaded_by: string | null
         }
         Insert: {
@@ -215,6 +222,7 @@ export type Database = {
           name: string
           size: number
           storage_path: string
+          tags?: string[]
           uploaded_by?: string | null
         }
         Update: {
@@ -229,6 +237,7 @@ export type Database = {
           name?: string
           size?: number
           storage_path?: string
+          tags?: string[]
           uploaded_by?: string | null
         }
         Relationships: [
@@ -335,24 +344,30 @@ export type Database = {
           created_at: string
           created_by: string | null
           currency: string
+          icon: string | null
           id: string
           name: string
+          tags: string[]
           timezone: string
         }
         Insert: {
           created_at?: string
           created_by?: string | null
           currency?: string
+          icon?: string | null
           id?: string
           name: string
+          tags?: string[]
           timezone?: string
         }
         Update: {
           created_at?: string
           created_by?: string | null
           currency?: string
+          icon?: string | null
           id?: string
           name?: string
+          tags?: string[]
           timezone?: string
         }
         Relationships: []
@@ -371,6 +386,7 @@ export type Database = {
           received_by: string
           repeat_every: number
           repeat_unit: string
+          tags: string[]
         }
         Insert: {
           amount: number
@@ -385,6 +401,7 @@ export type Database = {
           received_by?: string
           repeat_every: number
           repeat_unit: string
+          tags?: string[]
         }
         Update: {
           amount?: number
@@ -399,6 +416,7 @@ export type Database = {
           received_by?: string
           repeat_every?: number
           repeat_unit?: string
+          tags?: string[]
         }
         Relationships: [
           {
@@ -422,6 +440,7 @@ export type Database = {
           received_by: string
           received_on: string
           source_id: string | null
+          tags: string[]
         }
         Insert: {
           amount: number
@@ -434,6 +453,7 @@ export type Database = {
           received_by?: string
           received_on: string
           source_id?: string | null
+          tags?: string[]
         }
         Update: {
           amount?: number
@@ -446,6 +466,7 @@ export type Database = {
           received_by?: string
           received_on?: string
           source_id?: string | null
+          tags?: string[]
         }
         Relationships: [
           {
@@ -479,6 +500,7 @@ export type Database = {
           price: number | null
           purchased_on: string | null
           serial_number: string | null
+          tags: string[]
           warranty_expires_on: string | null
         }
         Insert: {
@@ -495,6 +517,7 @@ export type Database = {
           price?: number | null
           purchased_on?: string | null
           serial_number?: string | null
+          tags?: string[]
           warranty_expires_on?: string | null
         }
         Update: {
@@ -511,6 +534,7 @@ export type Database = {
           price?: number | null
           purchased_on?: string | null
           serial_number?: string | null
+          tags?: string[]
           warranty_expires_on?: string | null
         }
         Relationships: [
@@ -619,6 +643,7 @@ export type Database = {
           notes: string | null
           repeat_every: number | null
           repeat_unit: string | null
+          tags: string[]
           title: string
         }
         Insert: {
@@ -633,6 +658,7 @@ export type Database = {
           notes?: string | null
           repeat_every?: number | null
           repeat_unit?: string | null
+          tags?: string[]
           title: string
         }
         Update: {
@@ -647,6 +673,7 @@ export type Database = {
           notes?: string | null
           repeat_every?: number | null
           repeat_unit?: string | null
+          tags?: string[]
           title?: string
         }
         Relationships: [
@@ -689,6 +716,13 @@ export type Database = {
         Args: { invite_token: string; member_name: string }
         Returns: string
       }
+      account_deletion_blockers: {
+        Args: never
+        Returns: {
+          household_id: string
+          name: string
+        }[]
+      }
       add_offline_member: {
         Args: { p_household: string; p_name: string }
         Returns: string
@@ -706,6 +740,7 @@ export type Database = {
         Args: { p_id: string; p_move_to?: string }
         Returns: undefined
       }
+      delete_my_account: { Args: never; Returns: undefined }
       is_household_user: {
         Args: { hid: string; uid: string }
         Returns: boolean
@@ -745,6 +780,10 @@ export type Database = {
         Returns: string
       }
       seed_default_categories: { Args: { hid: string }; Returns: undefined }
+      transfer_ownership: {
+        Args: { p_household: string; p_to: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

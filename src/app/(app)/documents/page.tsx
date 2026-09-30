@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Notice from "@/components/notice";
+import { TagChips, TagFilter } from "@/components/tags";
 import { expiryStatus, EXPIRY_TONE, todayIn } from "@/lib/dates";
 import { getHouseholdContext } from "@/lib/household";
+import { allTags } from "@/lib/tags";
 import { DOC_CATEGORIES, formatBytes, type DocCategory } from "@/lib/storage";
 import { uploadDocument } from "./actions";
 import DocumentFields from "./document-fields";
@@ -12,16 +14,17 @@ export const metadata: Metadata = { title: "Documents" };
 export default async function DocumentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; q?: string; c?: string }>;
+  searchParams: Promise<{ tag?: string; error?: string; q?: string; c?: string }>;
 }) {
-  const { error, q = "", c } = await searchParams;
+  const { tag, error, q = "", c } = await searchParams;
   const category = c && c in DOC_CATEGORIES ? (c as DocCategory) : undefined;
   const { supabase, active } = await getHouseholdContext();
   const today = todayIn(active.household.timezone);
 
   let query = supabase
     .from("files")
-    .select("id, name, category, expires_on, size, created_at")
+    .select("id, name, category, expires_on, size, created_at, tags")
+    .contains("tags", tag ? [tag] : [])
     .eq("household_id", active.household.id)
     .eq("kind", "document")
     .is("item_id", null)
@@ -46,6 +49,8 @@ export default async function DocumentsPage({
     );
   };
 
+  const { data: tagRows } = await supabase.from("files").select("tags").eq("household_id", active.household.id);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -57,6 +62,7 @@ export default async function DocumentsPage({
         </form>
       </div>
       <Notice error={error} />
+      <TagFilter tags={allTags(tagRows)} current={tag} href={(t) => (t ? `/documents?tag=${encodeURIComponent(t)}` : "/documents")} />
 
       <details className="card" open={!q && !category && docs?.length === 0}>
         <summary className="cursor-pointer font-medium marker:text-muted">Upload a document</summary>
@@ -94,6 +100,7 @@ export default async function DocumentsPage({
                     <span className="block text-xs text-muted">
                       {DOC_CATEGORIES[d.category as DocCategory] ?? "Other"} · {formatBytes(d.size)}
                     </span>
+                    <TagChips tags={d.tags} className="mt-1" />
                   </span>
                   {expiry && <span className={`shrink-0 text-sm ${EXPIRY_TONE[expiry.tone]}`}>{expiry.label}</span>}
                 </Link>

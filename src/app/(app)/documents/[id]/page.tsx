@@ -24,7 +24,7 @@ export default async function DocumentPage({
   const { supabase, active } = await getHouseholdContext();
   const { data: doc } = await supabase
     .from("files")
-    .select("id, name, mime, size, category, expires_on, created_at")
+    .select("id, name, mime, size, category, expires_on, created_at, tags")
     .eq("id", id)
     .eq("household_id", active.household.id)
     .eq("kind", "document")
@@ -76,7 +76,7 @@ export default async function DocumentPage({
         <aside className="space-y-4">
           <form action={updateDocument} className="card grid gap-4">
             <input type="hidden" name="id" value={doc.id} />
-            <DocumentFields name={doc.name} category={doc.category} expiresOn={doc.expires_on} />
+            <DocumentFields name={doc.name} category={doc.category} expiresOn={doc.expires_on} tags={doc.tags} />
             <button className="btn">Save</button>
           </form>
           <form action={deleteDocument}>

@@ -5,7 +5,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getHouseholdContext, HOUSEHOLD_COOKIE } from "@/lib/household";
-import { BUCKET } from "@/lib/storage";
+import { removeHouseholdFiles } from "@/lib/storage";
+import { parseIcon, parseTags } from "@/lib/tags";
 import { createClient } from "@/lib/supabase/server";
 
 const name = z.string().trim().min(1, "Name is required").max(80);
@@ -90,9 +91,16 @@ export async function revokeInvite(formData: FormData) {
 export async function renameHousehold(formData: FormData) {
   const parsed = z.object({ name, currency }).safeParse(Object.fromEntries(formData));
   if (!parsed.success) return back("/household", "error", parsed.error.issues[0].message);
+  // A typed emoji wins over the preset picked in the row above it.
+  const custom = String(formData.get("icon_custom") ?? "").trim();
+  const icon = custom ? parseIcon(custom) : parseIcon(formData.get("icon"));
+  if (custom && !icon) return back("/household", "error", "The icon must be an emoji");
 
   const { supabase, active } = await getHouseholdContext();
-  const { error } = await supabase.from("households").update(parsed.data).eq("id", active.household.id);
+  const { error } = await supabase
+    .from("households")
+    .update({ ...parsed.data, icon, tags: parseTags(formData.get("tags")) })
+    .eq("id", active.household.id);
   if (error) return back("/household", "error", error.message);
   revalidatePath("/", "layout");
   back("/household", "message", "Household updated");
@@ -135,14 +143,8 @@ export async function deleteHousehold(formData: FormData) {
   if (active.role !== "owner" || count !== 1)
     return back("/household", "error", "Only the owner can delete a household, once everyone else has left");
 
-  // ponytail: 1000 objects per round, 50 rounds; a household with more files needs a background job.
-  for (let round = 0; round < 50; round++) {
-    const { data: objects, error } = await supabase.storage.from(BUCKET).list(hid, { limit: 1000 });
-    if (error) return back("/household", "error", error.message);
-    if (!objects.length) break;
-    const { error: removeError } = await supabase.storage.from(BUCKET).remove(objects.map((o) => `${hid}/${o.name}`));
-    if (removeError) return back("/household", "error", removeError.message);
-  }
+  const fileError = await removeHouseholdFiles(supabase, hid);
+  if (fileError) return back("/household", "error", fileError);
 
   const { data, error } = await supabase.from("households").delete().eq("id", hid).select("id");
   if (error) return back("/household", "error", error.message);
@@ -163,4 +165,16 @@ export async function addOfflineMember(formData: FormData) {
   if (error) return back("/household", "error", error.message);
   revalidatePath("/", "layout");
   back("/household", "message", `Added ${parsed.data}. They can now be assigned tasks and included in expenses.`);
+}
+
+/** Owner hands the household to another member with an account and becomes a plain member. */
+export async function transferOwnership(formData: FormData) {
+  const to = z.guid().safeParse(formData.get("user_id"));
+  if (!to.success) return back("/household", "error", "Pick a member");
+
+  const { supabase, active } = await getHouseholdContext();
+  const { error } = await supabase.rpc("transfer_ownership", { p_household: active.household.id, p_to: to.data });
+  if (error) return back("/household", "error", error.message);
+  revalidatePath("/", "layout");
+  back("/household", "message", "Ownership transferred. You're now a member.");
 }

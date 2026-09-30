@@ -23,7 +23,7 @@ export default async function TaskPage({
   const [{ data: task }, { data: members }, { data: history }, { data: items }] = await Promise.all([
     supabase
       .from("tasks")
-      .select("id, title, notes, due_date, assignee_id, item_id, repeat_every, repeat_unit, completed_at")
+      .select("id, title, notes, due_date, assignee_id, item_id, repeat_every, repeat_unit, completed_at, tags")
       .eq("id", id)
       .eq("household_id", hid)
       .maybeSingle(),

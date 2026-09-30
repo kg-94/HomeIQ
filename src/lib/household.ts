@@ -7,8 +7,11 @@ export const HOUSEHOLD_COOKIE = "hid";
 export type Membership = {
   role: "owner" | "member";
   display_name: string;
-  household: { id: string; name: string; currency: string; timezone: string };
+  household: { id: string; name: string; currency: string; timezone: string; icon: string | null; tags: string[] };
 };
+
+/** "🏡 Green Park Flat"; households without an icon get 🏠. */
+export const householdLabel = (h: { name: string; icon?: string | null }) => `${h.icon ?? "🏠"} ${h.name}`;
 
 /** Only allow same-origin relative redirects (blocks `//evil.com`). */
 export function safeNext(next: unknown, fallback = "/") {
@@ -30,7 +33,7 @@ export async function getHouseholdContext() {
 
   const { data, error } = await supabase
     .from("household_members")
-    .select("role, display_name, household:households!inner(id, name, currency, timezone)")
+    .select("role, display_name, household:households!inner(id, name, currency, timezone, icon, tags)")
     .eq("user_id", user.id)
     .order("created_at");
   if (error) throw error;

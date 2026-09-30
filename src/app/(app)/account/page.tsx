@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { logout } from "@/app/auth/actions";
-import { CONTACT_EMAIL } from "@/components/legal-page";
 import Notice from "@/components/notice";
+import { TagChips } from "@/components/tags";
 import { getHouseholdContext } from "@/lib/household";
 import { switchHousehold } from "../household/actions";
-import { updateMyName } from "./actions";
+import { deleteAccount, updateMyName } from "./actions";
 
 export const metadata: Metadata = { title: "Account" };
 
@@ -17,7 +17,15 @@ export default async function AccountPage({
   searchParams: Promise<{ error?: string; message?: string }>;
 }) {
   const { error, message } = await searchParams;
-  const { user, memberships, active } = await getHouseholdContext();
+  const { supabase, user, memberships, active } = await getHouseholdContext();
+  const [{ data: blockers }, { data: memberRows }] = await Promise.all([
+    supabase.rpc("account_deletion_blockers"),
+    supabase.from("household_members").select("household_id, user_id, is_offline"),
+  ]);
+  // Households that would be deleted with the account (no one else has an account there).
+  const goesWithAccount = memberships.filter(
+    (m) => !memberRows?.some((r) => r.household_id === m.household.id && r.user_id !== user.id && !r.is_offline),
+  );
   const meta = user.user_metadata;
   const name: string = meta.full_name ?? meta.name ?? active.display_name;
   const avatar: string | undefined = meta.avatar_url ?? meta.picture;
@@ -74,7 +82,7 @@ export default async function AccountPage({
             <li key={m.household.id}>
               <div className="flex items-center justify-between gap-3">
                 <p className="min-w-0 truncate text-sm">
-                  <span className="font-medium">{m.household.name}</span>
+                  <span className="font-medium">{m.household.icon ?? "🏠"} {m.household.name}</span>
                   <span className="ml-2 rounded bg-foreground/5 px-1.5 py-0.5 text-xs text-muted">{m.role}</span>
                 </p>
                 {m.household.id === active.household.id ? (
@@ -86,6 +94,7 @@ export default async function AccountPage({
                   </form>
                 )}
               </div>
+              <TagChips tags={m.household.tags} className="mt-1" />
               <form action={updateMyName} className="mt-2 flex gap-2">
                 <input type="hidden" name="household_id" value={m.household.id} />
                 <label htmlFor={`name-${m.household.id}`} className="sr-only">Your name in {m.household.name}</label>
@@ -106,11 +115,39 @@ export default async function AccountPage({
         </form>
       </div>
 
-      <p className="text-xs text-muted">
-        To delete your account, email{" "}
-        <a href={`mailto:${CONTACT_EMAIL}?subject=Delete my HomeIQ account`} className="link">{CONTACT_EMAIL}</a> from{" "}
-        {user.email}. See the <Link href="/privacy" className="link">Privacy Policy</Link>.
-      </p>
+      <section className="card border-danger/40">
+        <h2 className="font-medium text-danger">Delete account</h2>
+        {blockers?.length ? (
+          <div className="mt-2 text-sm">
+            <p className="text-muted">You&apos;re the only owner of households other people use. Make someone else owner first:</p>
+            <ul className="mt-2 list-disc pl-5">
+              {blockers.map((b) => (
+                <li key={b.household_id}>
+                  {b.name} &mdash; switch to it, then <Link href="/household" className="link">Household</Link> → Members → Make owner
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <>
+            <p className="mt-1 text-sm text-muted">
+              Permanently deletes your account and your private income.
+              {goesWithAccount.length > 0 && (
+                <>
+                  {" "}These households have no one else with an account and will be deleted with everything in them:{" "}
+                  <strong className="text-foreground">{goesWithAccount.map((m) => m.household.name).join(", ")}</strong>.
+                </>
+              )}{" "}
+              In households you share, your past expenses stay so others&apos; balances stay correct. This can&apos;t be undone.
+            </p>
+            <form action={deleteAccount} className="mt-4 flex flex-col gap-3 sm:flex-row">
+              <label htmlFor="confirm" className="sr-only">Type DELETE to confirm</label>
+              <input id="confirm" name="confirm" required autoComplete="off" placeholder="Type DELETE to confirm" className="input" />
+              <button className="btn shrink-0 bg-danger text-white">Delete my account</button>
+            </form>
+          </>
+        )}
+      </section>
     </div>
   );
 }

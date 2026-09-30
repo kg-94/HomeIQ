@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getHouseholdContext, safeNext } from "@/lib/household";
+import { parseTags } from "@/lib/tags";
 import { deleteFiles, FILE_KINDS, uploadFile } from "@/lib/storage";
 
 const optional = (max: number) => z.string().trim().max(max).transform((v) => v || null);
@@ -24,6 +25,7 @@ const item = z.object({
     .transform((v) => (v ? Number(v) : null))
     .pipe(z.number().nonnegative("Price can't be negative").multipleOf(0.01, "Price has too many decimals").nullable()),
   notes: optional(2000),
+  tags: z.unknown().transform(parseTags),
 });
 
 const back = (path: string, error: string) => redirect(`${path}?error=${encodeURIComponent(error)}`);

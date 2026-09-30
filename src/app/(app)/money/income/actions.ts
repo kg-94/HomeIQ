@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getHouseholdContext } from "@/lib/household";
+import { parseTags } from "@/lib/tags";
 import { amountPaise, fromPaise } from "@/lib/money";
 
 const back = (path: string, error: string) => redirect(`${path}?error=${encodeURIComponent(error)}`);
@@ -16,6 +17,7 @@ const fields = z.object({
   date: z.iso.date("Pick a date"),
   category: z.string().trim().max(60).transform((v) => v || null),
   is_private: z.literal("on").optional().transform((v) => v === "on"),
+  tags: z.unknown().transform(parseTags),
   repeat_every: z.coerce.number().int().min(0).max(999).default(0),
   repeat_unit: z.enum(["day", "week", "month", "year"]).default("month"),
 });
@@ -37,6 +39,7 @@ export async function addIncome(formData: FormData) {
     amount: fromPaise(d.amount),
     received_by: d.received_by,
     is_private: d.is_private,
+    tags: d.tags,
   };
   const { error } = d.repeat_every
     ? await supabase.from("income_sources").insert({
@@ -70,6 +73,7 @@ export async function updateIncome(formData: FormData) {
       received_by: d.received_by,
       received_on: d.date,
       is_private: d.is_private,
+      tags: d.tags,
     })
     .eq("id", id);
   if (error) return back(path, error.message);
@@ -97,6 +101,7 @@ export async function updateSource(formData: FormData) {
       received_by: d.received_by,
       next_date: d.date,
       is_private: d.is_private,
+      tags: d.tags,
       repeat_every: d.repeat_every,
       repeat_unit: d.repeat_unit,
     })

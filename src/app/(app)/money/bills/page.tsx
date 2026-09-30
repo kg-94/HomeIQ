@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Notice from "@/components/notice";
+import { TagChips, TagFilter } from "@/components/tags";
 import { dueGroup, formatDue, repeatLabel, todayIn } from "@/lib/dates";
 import { categoryNames } from "@/lib/categories";
 import { getHouseholdContext } from "@/lib/household";
+import { allTags } from "@/lib/tags";
 import { payBill, saveBill } from "../actions";
 import MoneyTabs from "../money-tabs";
 import BillForm from "./bill-form";
@@ -13,9 +15,9 @@ export const metadata: Metadata = { title: "Bills" };
 export default async function BillsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ tag?: string; error?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { tag, error } = await searchParams;
   const { supabase, user, active } = await getHouseholdContext();
   const categories = await categoryNames(supabase, active.household.id, "expense");
   const hid = active.household.id;
@@ -25,17 +27,21 @@ export default async function BillsPage({
   const [{ data: bills }, { data: members }] = await Promise.all([
     supabase
       .from("bills")
-      .select("id, name, payee, amount, due_date, repeat_every, repeat_unit, autopay")
+      .select("id, name, payee, amount, due_date, repeat_every, repeat_unit, autopay, tags")
+      .contains("tags", tag ? [tag] : [])
       .eq("household_id", hid)
       .is("paid_at", null)
       .order("due_date"),
     supabase.from("household_members").select("user_id, display_name").eq("household_id", hid).order("created_at"),
   ]);
 
+  const { data: tagRows } = await supabase.from("bills").select("tags").eq("household_id", active.household.id);
+
   return (
     <div className="space-y-6">
       <MoneyTabs current="bills" />
       <Notice error={error} />
+      <TagFilter tags={allTags(tagRows)} current={tag} href={(t) => (t ? `/money/bills?tag=${encodeURIComponent(t)}` : "/money/bills")} />
 
       <details className="card" open={bills?.length === 0}>
         <summary className="cursor-pointer font-medium marker:text-muted">Add a bill</summary>
@@ -55,6 +61,7 @@ export default async function BillsPage({
                   <span className="block text-xs text-muted">
                     {[b.payee, repeatLabel(b.repeat_every, b.repeat_unit), b.autopay && "Autopay"].filter(Boolean).join(" · ")}
                   </span>
+                  <TagChips tags={b.tags} className="mt-1" />
                 </Link>
                 <span className={`text-sm ${overdue ? "text-danger" : "text-muted"}`}>{formatDue(b.due_date, today)}</span>
                 <form action={payBill} className="flex w-full items-center gap-2 sm:w-auto">

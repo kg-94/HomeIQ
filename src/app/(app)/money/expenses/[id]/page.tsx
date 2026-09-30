@@ -25,7 +25,7 @@ export default async function ExpensePage({
   const [{ data: expense }, { data: members }] = await Promise.all([
     supabase
       .from("expenses")
-      .select("id, description, category, amount, paid_by, spent_on, splits:expense_splits(user_id, share)")
+      .select("id, description, category, amount, paid_by, spent_on, tags, splits:expense_splits(user_id, share)")
       .eq("id", id)
       .eq("household_id", hid)
       .maybeSingle(),

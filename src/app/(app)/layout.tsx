@@ -6,7 +6,9 @@ import { logout } from "@/app/auth/actions";
 import { getHouseholdContext } from "@/lib/household";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const { memberships, active } = await getHouseholdContext();
+  const { user, memberships, active } = await getHouseholdContext();
+  const avatar: string | undefined = user.user_metadata.avatar_url ?? user.user_metadata.picture;
+  const initial = ((user.user_metadata.full_name as string | undefined) ?? active.display_name).charAt(0).toUpperCase();
 
   return (
     <>
@@ -29,12 +31,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <button className="text-muted hover:text-foreground">Log out</button>
             </form>
           </nav>
-          {/* Phones: account page (log out, household settings) behind one icon. */}
-          <Link href="/account" aria-label="Account" className="-mr-2 flex size-11 items-center justify-center text-muted sm:hidden">
-            <svg aria-hidden viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 21a8 8 0 0 1 16 0" />
-            </svg>
+          {/* Phones: account page (log out, household settings) behind your photo. */}
+          <Link href="/account" aria-label="Account" className="-mr-2 flex size-11 items-center justify-center sm:hidden">
+            {avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element -- provider-hosted avatar, tiny
+              <img src={avatar} alt="" referrerPolicy="no-referrer" className="size-8 rounded-full bg-foreground/5 object-cover ring-1 ring-border" />
+            ) : (
+              <span aria-hidden className="flex size-8 items-center justify-center rounded-full bg-accent/10 text-sm font-semibold text-accent">
+                {initial}
+              </span>
+            )}
           </Link>
         </div>
       </header>

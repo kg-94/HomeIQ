@@ -66,10 +66,11 @@ export default function PrivacyPage() {
       <h2>Keeping and deleting your data</h2>
       <p>
         We keep your data while your account exists. You can delete items, files and expenses yourself at any time,
-        and leave a household from its settings page. To delete your account and all data only you control, email us
-        at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> from the email on your account. We&apos;ll do it
-        within 30 days. Shared household records, such as expenses you were part of, stay with the household so other
-        members&apos; balances remain correct, but they&apos;ll no longer be linked to your name.
+        and leave a household from its settings page. You can delete your account yourself from the Account page: it
+        removes your account, your private income, and any household where you&apos;re the only person with an account
+        (with its files). Shared household records, such as expenses you were part of, stay with the household so other
+        members&apos; balances remain correct, but they&apos;re no longer linked to your name. You can also email us at{" "}
+        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> and we&apos;ll do it within 30 days.
       </p>
 
       <h2>Your rights</h2>

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Notice from "@/components/notice";
+import { TagChips, TagFilter } from "@/components/tags";
 import { todayIn } from "@/lib/dates";
 import { categoryNames } from "@/lib/categories";
 import { getHouseholdContext } from "@/lib/household";
+import { allTags } from "@/lib/tags";
 import { formatMoney, fromPaise } from "@/lib/money";
 import { saveExpense } from "./actions";
 import ExpenseForm from "./expense-form";
@@ -14,9 +16,9 @@ export const metadata: Metadata = { title: "Money" };
 export default async function MoneyPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ tag?: string; error?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { tag, error } = await searchParams;
   const { supabase, user, active } = await getHouseholdContext();
   const categories = await categoryNames(supabase, active.household.id, "expense");
   const hid = active.household.id;
@@ -29,7 +31,8 @@ export default async function MoneyPage({
     supabase.from("member_balances").select("balance").eq("household_id", hid).eq("user_id", user.id).maybeSingle(),
     supabase
       .from("expenses")
-      .select("id, description, category, amount, paid_by, spent_on, bill_id")
+      .select("id, description, category, amount, paid_by, spent_on, bill_id, tags")
+      .contains("tags", tag ? [tag] : [])
       .eq("household_id", hid)
       .order("spent_on", { ascending: false })
       .order("created_at", { ascending: false })
@@ -39,10 +42,13 @@ export default async function MoneyPage({
 
   const mine = Math.round(Number(myBalance?.balance ?? 0) * 100);
 
+  const { data: tagRows } = await supabase.from("expenses").select("tags").eq("household_id", active.household.id);
+
   return (
     <div className="space-y-6">
       <MoneyTabs current="overview" />
       <Notice error={error} />
+      <TagFilter tags={allTags(tagRows)} current={tag} href={(t) => (t ? `/money?tag=${encodeURIComponent(t)}` : "/money")} />
 
       <Link href="/money/splits" className="card flex items-center justify-between gap-3 hover:border-accent">
         <span className={`text-sm ${mine < 0 ? "text-danger" : ""}`}>
@@ -72,6 +78,7 @@ export default async function MoneyPage({
                         .filter(Boolean)
                         .join(" · ")}
                     </span>
+                    <TagChips tags={e.tags} className="mt-1" />
                   </span>
                   <span className="shrink-0 tabular-nums">{fmt(e.amount)}</span>
                 </Link>

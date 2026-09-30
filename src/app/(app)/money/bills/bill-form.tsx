@@ -1,4 +1,5 @@
 import CategorySelect from "@/components/category-select";
+import { TagInput } from "@/components/tags";
 
 type Bill = {
   id: string;
@@ -11,6 +12,7 @@ type Bill = {
   repeat_unit: string | null;
   autopay: boolean;
   notes: string | null;
+  tags?: string[];
 };
 
 export default function BillForm({
@@ -64,6 +66,9 @@ export default function BillForm({
       <div className="sm:col-span-2">
         <label htmlFor="notes" className="label">Notes</label>
         <textarea id="notes" name="notes" defaultValue={bill?.notes ?? ""} rows={2} maxLength={2000} placeholder="Consumer number, login hint…" className="input" />
+      </div>
+      <div className="sm:col-span-2">
+        <TagInput defaultValue={bill?.tags} />
       </div>
       <div className="sm:col-span-2">
         <button className="btn">{bill ? "Save" : "Add bill"}</button>

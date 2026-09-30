@@ -37,6 +37,7 @@ export async function uploadFile(
     name?: string | null;
     category?: DocCategory | null;
     expiresOn?: string | null;
+    tags?: string[];
   },
 ): Promise<string | null> {
   const { householdId, file, kind, itemId = null, category = null, expiresOn = null } = opts;
@@ -62,6 +63,7 @@ export async function uploadFile(
     storage_path,
     category,
     expires_on: expiresOn,
+    tags: opts.tags ?? [],
   });
   if (error) {
     await supabase.storage.from(BUCKET).remove([storage_path]);
@@ -81,3 +83,19 @@ export async function deleteFiles(supabase: Client, files: { id: string; storage
 
 export const formatBytes = (n: number) =>
   n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`;
+
+/**
+ * Removes every stored object under "<household>/" (SQL can't delete storage
+ * objects). Returns an error message, or null. Call before deleting a household.
+ */
+export async function removeHouseholdFiles(supabase: Client, householdId: string): Promise<string | null> {
+  // ponytail: 1000 objects per round, 50 rounds; a household with more files needs a background job.
+  for (let round = 0; round < 50; round++) {
+    const { data: objects, error } = await supabase.storage.from(BUCKET).list(householdId, { limit: 1000 });
+    if (error) return error.message;
+    if (!objects.length) return null;
+    const { error: removeError } = await supabase.storage.from(BUCKET).remove(objects.map((o) => `${householdId}/${o.name}`));
+    if (removeError) return removeError.message;
+  }
+  return "Too many files to remove at once; try again";
+}

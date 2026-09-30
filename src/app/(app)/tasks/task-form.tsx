@@ -1,9 +1,11 @@
+import { TagInput } from "@/components/tags";
 type Member = { user_id: string; display_name: string };
 type Item = { id: string; name: string };
 type Task = {
   id: string;
   title: string;
   notes: string | null;
+  tags?: string[];
   due_date: string;
   assignee_id: string | null;
   item_id: string | null;
@@ -84,6 +86,9 @@ export default function TaskForm({
       <div className="sm:col-span-2">
         <label htmlFor="notes" className="label">Notes</label>
         <textarea id="notes" name="notes" defaultValue={task?.notes ?? ""} rows={2} maxLength={2000} className="input" />
+      </div>
+      <div className="sm:col-span-2">
+        <TagInput defaultValue={task?.tags} />
       </div>
       <div className="sm:col-span-2">
         <button className="btn">{submitLabel}</button>

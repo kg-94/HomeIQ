@@ -4,12 +4,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getHouseholdContext } from "@/lib/household";
+import { parseTags } from "@/lib/tags";
 import { DOC_CATEGORIES, deleteFiles, uploadFile, type DocCategory } from "@/lib/storage";
 
 const meta = z.object({
   name: z.string().trim().max(200).transform((v) => v || null),
   category: z.enum(Object.keys(DOC_CATEGORIES) as [DocCategory, ...DocCategory[]]),
   expires_on: z.union([z.literal(""), z.iso.date()]).transform((v) => v || null),
+  tags: z.unknown().transform(parseTags),
 });
 
 const back = (path: string, error: string) => redirect(`${path}?error=${encodeURIComponent(error)}`);
@@ -28,6 +30,7 @@ export async function uploadDocument(formData: FormData) {
     name: parsed.data.name,
     category: parsed.data.category,
     expiresOn: parsed.data.expires_on,
+    tags: parsed.data.tags,
   });
   if (error) return back("/documents", error);
   revalidatePath("/", "layout");

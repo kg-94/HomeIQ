@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getHouseholdContext } from "@/lib/household";
+import { parseTags } from "@/lib/tags";
 import { amountPaise, fromPaise, splitEqually, toPaise } from "@/lib/money";
 
 const back = (path: string, error: string) => redirect(`${path}?error=${encodeURIComponent(error)}`);
@@ -15,6 +16,7 @@ const expense = z.object({
   spent_on: z.iso.date("Pick a date"),
   category: z.string().trim().max(60).transform((v) => v || null),
   split: z.enum(["equal", "exact"]),
+  tags: z.unknown().transform(parseTags),
 });
 
 /**
@@ -55,7 +57,7 @@ export async function saveExpense(formData: FormData) {
   const splits = readSplits(formData, members?.map((m) => m.user_id) ?? [], parsed.data.amount, parsed.data.split, parsed.data.paid_by);
   if (typeof splits === "string") return back(path, splits);
 
-  const { error } = await supabase.rpc("save_expense", {
+  const { data: expenseId, error } = await supabase.rpc("save_expense", {
     p_id: id!,
     p_household: hid,
     p_description: parsed.data.description,
@@ -66,6 +68,8 @@ export async function saveExpense(formData: FormData) {
     p_splits: splits,
   });
   if (error) return back(path, error.message);
+  const { error: tagError } = await supabase.from("expenses").update({ tags: parsed.data.tags }).eq("id", expenseId);
+  if (tagError) return back(path, tagError.message);
   revalidatePath("/", "layout");
   redirect("/money");
 }
@@ -118,6 +122,7 @@ const bill = z
     repeat_unit: z.enum(["day", "week", "month", "year"]),
     autopay: z.literal("on").optional(),
     notes: z.string().trim().max(2000).transform((v) => v || null),
+    tags: z.unknown().transform(parseTags),
   })
   .transform(({ repeat_every, repeat_unit, amount, autopay, ...rest }) => ({
     ...rest,

@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import CopyLink from "@/components/copy-link";
 import Notice from "@/components/notice";
+import { TagChips, TagInput } from "@/components/tags";
 import { getHouseholdContext } from "@/lib/household";
-import { addOfflineMember, createInvite, deleteHousehold, removeMember, renameHousehold, revokeInvite } from "./actions";
+import { addOfflineMember, createInvite, deleteHousehold, removeMember, renameHousehold, revokeInvite, transferOwnership } from "./actions";
 
 export const metadata: Metadata = { title: "Household" };
+
+const ICONS = ["🏠", "🏡", "🏢", "🏘️", "🏚️", "🏰", "🛖", "🌳", "🏖️", "🏔️", "🚐", "❤️"];
 
 export default async function HouseholdPage({
   searchParams,
@@ -36,21 +39,51 @@ export default async function HouseholdPage({
 
   return (
     <div className="max-w-2xl space-y-6">
-      <h1 className="text-2xl font-semibold">Household</h1>
+      <div>
+        <h1 className="text-2xl font-semibold">
+          <span aria-hidden>{active.household.icon ?? "🏠"}</span> {active.household.name}
+        </h1>
+        <TagChips tags={active.household.tags} className="mt-2" />
+      </div>
       <Notice error={error} message={message} />
 
       {isOwner && (
         <section className="card">
           <h2 className="font-medium">Details</h2>
-          <form action={renameHousehold} className="mt-4 flex flex-wrap items-end gap-3">
-            <div className="min-w-48 flex-1">
-              <label htmlFor="name" className="label">Name</label>
-              <input id="name" name="name" defaultValue={active.household.name} required maxLength={80} className="input" />
+          <form action={renameHousehold} className="mt-4 space-y-4">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="min-w-48 flex-1">
+                <label htmlFor="name" className="label">Name</label>
+                <input id="name" name="name" defaultValue={active.household.name} required maxLength={80} className="input" />
+              </div>
+              <div className="w-24">
+                <label htmlFor="currency" className="label">Currency</label>
+                <input id="currency" name="currency" defaultValue={active.household.currency} required maxLength={3} className="input uppercase" />
+              </div>
             </div>
-            <div className="w-24">
-              <label htmlFor="currency" className="label">Currency</label>
-              <input id="currency" name="currency" defaultValue={active.household.currency} required maxLength={3} className="input uppercase" />
-            </div>
+            <fieldset>
+              <legend className="label">Icon</legend>
+              <div className="flex flex-wrap gap-1.5">
+                {ICONS.map((i) => (
+                  <label key={i} className="cursor-pointer">
+                    <input type="radio" name="icon" value={i} defaultChecked={(active.household.icon ?? "🏠") === i} className="peer sr-only" />
+                    <span className="flex size-11 items-center justify-center rounded-md border border-border text-2xl peer-checked:border-accent peer-checked:bg-accent/10 peer-focus-visible:ring-2 peer-focus-visible:ring-accent/40">
+                      {i}
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <label htmlFor="icon_custom" className="mt-2 block text-xs text-muted">Or type any emoji</label>
+              <input
+                id="icon_custom"
+                name="icon_custom"
+                defaultValue={active.household.icon && !ICONS.includes(active.household.icon) ? active.household.icon : ""}
+                placeholder="🐶"
+                maxLength={16}
+                className="input w-24 text-center text-xl"
+              />
+            </fieldset>
+            <TagInput defaultValue={active.household.tags} placeholder="e.g. rental, parents, weekend home" />
             <button className="btn">Save</button>
           </form>
         </section>
@@ -78,6 +111,16 @@ export default async function HouseholdPage({
                     </form>
                   )}
                 </div>
+                {isOwner && !isMe && !m.is_offline && m.role !== "owner" && (
+                  <details className="mt-1">
+                    <summary className="cursor-pointer text-xs text-muted">Make owner</summary>
+                    <form action={transferOwnership} className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+                      <input type="hidden" name="user_id" value={m.user_id} />
+                      <span>{m.display_name} becomes the owner and you become a member.</span>
+                      <button className="btn-ghost">Transfer ownership</button>
+                    </form>
+                  </details>
+                )}
                 {isOwner && m.is_offline && (
                   <details className="mt-1">
                     <summary className="cursor-pointer text-xs text-muted">Link to an account</summary>

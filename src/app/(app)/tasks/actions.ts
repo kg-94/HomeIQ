@@ -4,11 +4,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getHouseholdContext } from "@/lib/household";
+import { parseTags } from "@/lib/tags";
 
 const task = z
   .object({
     title: z.string().trim().min(1, "Title is required").max(120),
     notes: z.string().trim().max(2000).transform((v) => v || null),
+    tags: z.unknown().transform(parseTags),
     due_date: z.iso.date("Pick a due date"),
     assignee_id: z.string().transform((v) => v || null),
     item_id: z.string().optional().transform((v) => v || null),

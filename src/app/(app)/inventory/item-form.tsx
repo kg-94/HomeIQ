@@ -1,3 +1,4 @@
+import { TagInput } from "@/components/tags";
 type Item = {
   id: string;
   name: string;
@@ -10,6 +11,7 @@ type Item = {
   warranty_expires_on: string | null;
   price: number | null;
   notes: string | null;
+  tags?: string[];
 };
 
 const CATEGORIES = ["Appliance", "Electronics", "Furniture", "Kitchen", "Vehicle", "Tools", "Other"];
@@ -61,6 +63,9 @@ export default function ItemForm({
           <input id="receipt" name="receipt" type="file" accept="application/pdf,image/*" className="text-sm" />
         </div>
       )}
+      <div className="sm:col-span-2">
+        <TagInput defaultValue={item?.tags} />
+      </div>
       <div className="sm:col-span-2">
         <button className="btn">{submitLabel}</button>
       </div>

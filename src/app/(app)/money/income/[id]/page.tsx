@@ -24,7 +24,7 @@ export default async function IncomeEntryPage({
   const [{ data: income }, { data: members }] = await Promise.all([
     supabase
       .from("incomes")
-      .select("id, description, category, amount, received_by, received_on, is_private")
+      .select("id, description, category, amount, received_by, received_on, is_private, tags")
       .eq("id", id)
       .eq("household_id", hid)
       .maybeSingle(),

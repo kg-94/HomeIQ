@@ -1,4 +1,5 @@
 import CategorySelect from "@/components/category-select";
+import { TagInput } from "@/components/tags";
 
 type Member = { user_id: string; display_name: string };
 type Values = {
@@ -9,6 +10,7 @@ type Values = {
   received_by: string;
   date: string;
   is_private: boolean;
+  tags?: string[];
   repeat_every?: number | null;
   repeat_unit?: string | null;
 };
@@ -96,6 +98,9 @@ export default function IncomeForm({
           <span className="block text-xs text-muted">Hidden from other members and their totals. Only for income you received.</span>
         </span>
       </label>
+      <div className="sm:col-span-2">
+        <TagInput defaultValue={values?.tags} />
+      </div>
       <div className="sm:col-span-2">
         <button className="btn">{submitLabel}</button>
       </div>

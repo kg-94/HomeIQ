@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Notice from "@/components/notice";
+import { TagChips, TagFilter } from "@/components/tags";
 import { expiryStatus, EXPIRY_TONE, todayIn } from "@/lib/dates";
 import { getHouseholdContext } from "@/lib/household";
+import { allTags } from "@/lib/tags";
 import { createItem } from "./actions";
 import ItemForm from "./item-form";
 
@@ -11,21 +13,24 @@ export const metadata: Metadata = { title: "Inventory" };
 export default async function InventoryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; q?: string }>;
+  searchParams: Promise<{ tag?: string; error?: string; q?: string }>;
 }) {
-  const { error, q = "" } = await searchParams;
+  const { tag, error, q = "" } = await searchParams;
   const { supabase, active } = await getHouseholdContext();
   const today = todayIn(active.household.timezone);
 
   let query = supabase
     .from("items")
-    .select("id, name, category, location, brand, warranty_expires_on, files(count)")
+    .select("id, name, category, location, brand, warranty_expires_on, files(count), tags")
+    .contains("tags", tag ? [tag] : [])
     .eq("household_id", active.household.id)
     .order("name");
   // Drop LIKE wildcards and PostgREST or()/quoting syntax from user input.
   const term = q.trim().replace(/[%_*,()"\\]/g, " ");
   if (term) query = query.or(`name.ilike.%${term}%,brand.ilike.%${term}%,category.ilike.%${term}%,location.ilike.%${term}%`);
   const { data: items } = await query;
+
+  const { data: tagRows } = await supabase.from("items").select("tags").eq("household_id", active.household.id);
 
   return (
     <div className="space-y-6">
@@ -37,6 +42,7 @@ export default async function InventoryPage({
         </form>
       </div>
       <Notice error={error} />
+      <TagFilter tags={allTags(tagRows)} current={tag} href={(t) => (t ? `/inventory?tag=${encodeURIComponent(t)}` : "/inventory")} />
 
       <details className="card" open={!q && items?.length === 0}>
         <summary className="cursor-pointer font-medium marker:text-muted">Add an item</summary>
@@ -62,6 +68,7 @@ export default async function InventoryPage({
                         .filter(Boolean)
                         .join(" · ")}
                     </span>
+                    <TagChips tags={item.tags} className="mt-1" />
                   </span>
                   {warranty && <span className={`shrink-0 text-sm ${EXPIRY_TONE[warranty.tone]}`}>{warranty.label}</span>}
                 </Link>

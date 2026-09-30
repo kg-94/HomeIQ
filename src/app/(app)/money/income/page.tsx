@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Notice from "@/components/notice";
+import { TagChips, TagFilter } from "@/components/tags";
 import { dueGroup, formatDue, repeatLabel, todayIn } from "@/lib/dates";
 import { categoryNames } from "@/lib/categories";
 import { getHouseholdContext } from "@/lib/household";
+import { allTags } from "@/lib/tags";
 import { formatMoney } from "@/lib/money";
 import MoneyTabs from "../money-tabs";
 import { addIncome, receiveIncome } from "./actions";
@@ -21,9 +23,9 @@ const LockIcon = () => (
 export default async function IncomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ tag?: string; error?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { tag, error } = await searchParams;
   const { supabase, user, active } = await getHouseholdContext();
   const categories = await categoryNames(supabase, active.household.id, "income");
   const hid = active.household.id;
@@ -42,7 +44,8 @@ export default async function IncomePage({
       .order("next_date"),
     supabase
       .from("incomes")
-      .select("id, description, category, amount, received_by, received_on, is_private")
+      .select("id, description, category, amount, received_by, received_on, is_private, tags")
+      .contains("tags", tag ? [tag] : [])
       .eq("household_id", hid)
       .order("received_on", { ascending: false })
       .order("created_at", { ascending: false })
@@ -57,10 +60,13 @@ export default async function IncomePage({
   const net = incomeTotal - expenseTotal;
   const monthName = new Date(`${monthStart}T00:00:00Z`).toLocaleDateString("en-IN", { month: "long", timeZone: "UTC" });
 
+  const { data: tagRows } = await supabase.from("incomes").select("tags").eq("household_id", active.household.id);
+
   return (
     <div className="space-y-6">
       <MoneyTabs current="income" />
       <Notice error={error} />
+      <TagFilter tags={allTags(tagRows)} current={tag} href={(t) => (t ? `/money/income?tag=${encodeURIComponent(t)}` : "/money/income")} />
 
       <section className="card">
         <h2 className="font-medium">{monthName} so far</h2>
@@ -134,6 +140,7 @@ export default async function IncomePage({
                         .filter(Boolean)
                         .join(" · ")}
                     </span>
+                    <TagChips tags={i.tags} className="mt-1" />
                   </span>
                   <span className="shrink-0 tabular-nums text-accent">+{fmt(i.amount)}</span>
                 </Link>

@@ -1,3 +1,4 @@
+import { TagInput } from "@/components/tags";
 import { DOC_CATEGORIES } from "@/lib/storage";
 
 /** Name / category / expiry inputs shared by the upload and edit forms. */
@@ -5,11 +6,13 @@ export default function DocumentFields({
   name,
   category,
   expiresOn,
+  tags,
   namePlaceholder,
 }: {
   name?: string;
   category?: string | null;
   expiresOn?: string | null;
+  tags?: string[];
   namePlaceholder?: string;
 }) {
   return (
@@ -29,6 +32,9 @@ export default function DocumentFields({
       <div>
         <label htmlFor="expires_on" className="label">Expires on (optional)</label>
         <input id="expires_on" name="expires_on" type="date" defaultValue={expiresOn ?? ""} className="input" />
+      </div>
+      <div className="sm:col-span-2">
+        <TagInput defaultValue={tags} />
       </div>
     </>
   );

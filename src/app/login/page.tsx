@@ -11,9 +11,9 @@ export const metadata: Metadata = { title: "Log in" };
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; next?: string; consent?: string }>;
+  searchParams: Promise<{ error?: string; message?: string; next?: string; consent?: string }>;
 }) {
-  const { error, next = "/", consent } = await searchParams;
+  const { error, message, next = "/", consent } = await searchParams;
   const last = decodeLastLogin((await cookies()).get(LAST_LOGIN_COOKIE)?.value);
   const firstName = last?.name.split(" ")[0];
 
@@ -22,6 +22,7 @@ export default async function LoginPage({
       title={last ? `Welcome back${firstName ? `, ${firstName}` : ""}` : "Welcome to HomeIQ"}
       subtitle={last ? (last.email ? `Continue as ${last.email}` : undefined) : "Log in or create your account with Google or Discord."}
       error={error}
+      message={message}
     >
       <OAuthButtons next={next} primary={last?.provider} consent={consent === "1"} />
       {last && (
