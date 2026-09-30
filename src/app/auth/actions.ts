@@ -5,21 +5,37 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { HOUSEHOLD_COOKIE, safeNext } from "@/lib/household";
+import { decodeLastLogin, LAST_LOGIN_COOKIE, PROVIDERS } from "@/lib/last-login";
 import { createClient } from "@/lib/supabase/server";
 
 // Google / Discord only: the first OAuth login creates the account.
 export async function oauth(formData: FormData) {
   const next = safeNext(formData.get("next"));
-  const provider = z.enum(["google", "discord"]).parse(formData.get("provider"));
+  const provider = z.enum(PROVIDERS).parse(formData.get("provider"));
   const origin = (await headers()).get("origin") ?? "";
+
+  // Returning user on this device: skip Discord's approval screen and
+  // pre-select their Google account. consent=1 means the skip just failed.
+  const last = decodeLastLogin((await cookies()).get(LAST_LOGIN_COOKIE)?.value);
+  const queryParams: Record<string, string> = {};
+  if (last?.provider === provider) {
+    if (provider === "discord" && formData.get("consent") !== "1") queryParams.prompt = "none";
+    if (provider === "google" && last.email) queryParams.login_hint = last.email;
+  }
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
-    options: { redirectTo: `${origin}/auth/confirm?${new URLSearchParams({ next })}` },
+    options: { redirectTo: `${origin}/auth/confirm?${new URLSearchParams({ next })}`, queryParams },
   });
   if (error) redirect(`/login?${new URLSearchParams({ error: error.message, next })}`);
   redirect(data.url);
+}
+
+/** "Not you?" on /login: forget the remembered account on this device. */
+export async function forgetDevice() {
+  (await cookies()).delete(LAST_LOGIN_COOKIE);
+  redirect("/login");
 }
 
 export async function logout() {

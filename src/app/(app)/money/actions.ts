@@ -4,19 +4,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getHouseholdContext } from "@/lib/household";
-import { fromPaise, splitEqually, toPaise } from "@/lib/money";
+import { amountPaise, fromPaise, splitEqually, toPaise } from "@/lib/money";
 
 const back = (path: string, error: string) => redirect(`${path}?error=${encodeURIComponent(error)}`);
 
-const money = (label: string) =>
-  z
-    .string()
-    .transform((v) => toPaise(v) ?? -1)
-    .pipe(z.number().int().positive(`Enter a valid ${label}`));
-
 const expense = z.object({
   description: z.string().trim().min(1, "Description is required").max(120),
-  amount: money("amount"),
+  amount: amountPaise,
   paid_by: z.guid("Choose who paid"),
   spent_on: z.iso.date("Pick a date"),
   category: z.string().trim().max(60).transform((v) => v || null),
@@ -89,7 +83,7 @@ export async function recordSettlement(formData: FormData) {
     .object({
       from_user: z.guid(),
       to_user: z.guid(),
-      amount: money("amount"),
+      amount: amountPaise,
       settled_on: z.iso.date(),
     })
     .refine((s) => s.from_user !== s.to_user, "Pick two different people")
@@ -117,7 +111,7 @@ const bill = z
     name: z.string().trim().min(1, "Name is required").max(120),
     payee: z.string().trim().max(120).transform((v) => v || null),
     category: z.string().trim().max(60).transform((v) => v || null),
-    amount: money("amount"),
+    amount: amountPaise,
     due_date: z.iso.date("Pick a due date"),
     repeat_every: z.coerce.number().int().min(0).max(999),
     repeat_unit: z.enum(["day", "week", "month", "year"]),
@@ -159,7 +153,7 @@ export async function deleteBill(formData: FormData) {
 /** Records the payment as an expense split equally among current members. */
 export async function payBill(formData: FormData) {
   const parsed = z
-    .object({ bill: z.guid(), paid_by: z.guid("Choose who paid"), amount: money("amount") })
+    .object({ bill: z.guid(), paid_by: z.guid("Choose who paid"), amount: amountPaise })
     .safeParse(Object.fromEntries(formData));
   if (!parsed.success) return back("/money/bills", parsed.error.issues[0].message);
 

@@ -23,8 +23,10 @@ export default function PrivacyPage() {
           settle-ups, invite emails, and files you upload such as receipts, manuals and documents.
         </li>
         <li>
-          <strong>Cookies.</strong> Only what&apos;s needed to run the app: a sign-in session cookie and one that remembers
-          which household you&apos;re viewing. No advertising or analytics cookies.
+          <strong>Cookies.</strong> Only what&apos;s needed to run the app: a sign-in session cookie, one that remembers
+          which household you&apos;re viewing, and one that remembers the last account used on this device (its name,
+          email and whether it was Google or Discord) so logging in again is one tap. &ldquo;Not you?&rdquo; on the
+          login page removes it. No advertising or analytics cookies.
         </li>
         <li>
           <strong>Basic server logs.</strong> Our hosting provider records requests (such as IP address, time and page)

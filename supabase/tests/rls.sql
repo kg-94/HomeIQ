@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 -- runs via `supabase db query`, which only returns the last result.
 create temp table tap (at timestamptz default clock_timestamp(), line text);
 grant all on tap to authenticated, anon;
-insert into tap (line) select plan(14);
+insert into tap (line) select plan(16);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'a@rls.test'),
@@ -67,6 +67,13 @@ insert into tap (line) select is((select count(*) from households), 2::bigint, '
 
 with d as (delete from households where name = 'A home' returning 1)
 insert into tap (line) select is(count(*), 0::bigint, 'member cannot delete household') from d;
+
+-- B is still the only member of B home: may delete it. A home now has B, so A may not.
+with d as (delete from households where name = 'B home' returning 1)
+insert into tap (line) select is(count(*), 1::bigint, 'sole owner can delete their household') from d;
+select pg_temp.act_as('00000000-0000-0000-0000-00000000000a', 'a@rls.test');
+with d as (delete from households where name = 'A home' returning 1)
+insert into tap (line) select is(count(*), 0::bigint, 'owner cannot delete a household others belong to') from d;
 
 -- Anonymous
 reset role;

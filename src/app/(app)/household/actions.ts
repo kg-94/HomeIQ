@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getHouseholdContext, HOUSEHOLD_COOKIE } from "@/lib/household";
+import { BUCKET } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 
 const name = z.string().trim().min(1, "Name is required").max(80);
@@ -111,4 +112,40 @@ export async function removeMember(formData: FormData) {
     (await cookies()).delete(HOUSEHOLD_COOKIE);
     redirect("/");
   }
+}
+
+/**
+ * Deletes the active household. Only its owner, and only once they're the last
+ * member (also enforced by RLS). Stored files go first: SQL can't delete them.
+ */
+export async function deleteHousehold(formData: FormData) {
+  const { supabase, active } = await getHouseholdContext();
+  const hid = active.household.id;
+  if (String(formData.get("confirm") ?? "").trim() !== active.household.name)
+    return back("/household", "error", "Type the household name exactly to confirm");
+
+  // Check before touching files, so a refused delete never loses uploads.
+  const { count } = await supabase
+    .from("household_members")
+    .select("*", { count: "exact", head: true })
+    .eq("household_id", hid);
+  if (active.role !== "owner" || count !== 1)
+    return back("/household", "error", "Only the owner can delete a household, once everyone else has left");
+
+  // ponytail: 1000 objects per round, 50 rounds; a household with more files needs a background job.
+  for (let round = 0; round < 50; round++) {
+    const { data: objects, error } = await supabase.storage.from(BUCKET).list(hid, { limit: 1000 });
+    if (error) return back("/household", "error", error.message);
+    if (!objects.length) break;
+    const { error: removeError } = await supabase.storage.from(BUCKET).remove(objects.map((o) => `${hid}/${o.name}`));
+    if (removeError) return back("/household", "error", removeError.message);
+  }
+
+  const { data, error } = await supabase.from("households").delete().eq("id", hid).select("id");
+  if (error) return back("/household", "error", error.message);
+  if (!data.length) return back("/household", "error", "Only the owner can delete a household, once everyone else has left");
+
+  (await cookies()).delete(HOUSEHOLD_COOKIE);
+  revalidatePath("/", "layout");
+  redirect("/");
 }

@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import CopyLink from "@/components/copy-link";
 import Notice from "@/components/notice";
-import { logout } from "@/app/auth/actions";
 import { getHouseholdContext } from "@/lib/household";
-import { createInvite, removeMember, renameHousehold, revokeInvite } from "./actions";
+import { createInvite, deleteHousehold, removeMember, renameHousehold, revokeInvite } from "./actions";
 
 export const metadata: Metadata = { title: "Household" };
 
@@ -29,6 +28,9 @@ export default async function HouseholdPage({
           .order("created_at", { ascending: false })
       : Promise.resolve({ data: [] }),
   ]);
+
+  // The last owner can't leave; if nobody else is left they can delete instead.
+  const isSoleOwner = isOwner && members?.length === 1;
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -64,7 +66,7 @@ export default async function HouseholdPage({
                   {isMe && <span className="text-muted"> (you)</span>}
                   <span className="ml-2 rounded bg-foreground/5 px-1.5 py-0.5 text-xs text-muted">{m.role}</span>
                 </span>
-                {(isMe || isOwner) && (
+                {(isMe || isOwner) && !(isMe && isSoleOwner) && (
                   <form action={removeMember}>
                     <input type="hidden" name="user_id" value={m.user_id} />
                     <button className="-my-2 py-2 text-sm text-danger hover:underline">{isMe ? "Leave" : "Remove"}</button>
@@ -113,9 +115,27 @@ export default async function HouseholdPage({
         </section>
       )}
 
-      <form action={logout} className="sm:hidden">
-        <button className="btn-ghost w-full">Log out</button>
-      </form>
+      {isSoleOwner && (
+        <section className="card border-danger/40">
+          <h2 className="font-medium text-danger">Delete household</h2>
+          <p className="mt-1 text-sm text-muted">
+            You&apos;re the only member, so you can&apos;t leave &mdash; but you can delete it. This permanently removes
+            its tasks, items, documents and files, bills and expenses. It can&apos;t be undone.
+          </p>
+          <form action={deleteHousehold} className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <label htmlFor="confirm" className="sr-only">Type the household name to confirm</label>
+            <input
+              id="confirm"
+              name="confirm"
+              required
+              autoComplete="off"
+              placeholder={`Type "${active.household.name}" to confirm`}
+              className="input"
+            />
+            <button className="btn shrink-0 bg-danger text-white">Delete household</button>
+          </form>
+        </section>
+      )}
     </div>
   );
 }

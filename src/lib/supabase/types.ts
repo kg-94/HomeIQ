@@ -319,6 +319,113 @@ export type Database = {
         }
         Relationships: []
       }
+      income_sources: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          household_id: string
+          id: string
+          is_private: boolean
+          name: string
+          next_date: string
+          notes: string | null
+          received_by: string
+          repeat_every: number
+          repeat_unit: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          household_id: string
+          id?: string
+          is_private?: boolean
+          name: string
+          next_date: string
+          notes?: string | null
+          received_by?: string
+          repeat_every: number
+          repeat_unit: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          household_id?: string
+          id?: string
+          is_private?: boolean
+          name?: string
+          next_date?: string
+          notes?: string | null
+          received_by?: string
+          repeat_every?: number
+          repeat_unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "income_sources_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incomes: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          description: string
+          household_id: string
+          id: string
+          is_private: boolean
+          received_by: string
+          received_on: string
+          source_id: string | null
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          description: string
+          household_id: string
+          id?: string
+          is_private?: boolean
+          received_by?: string
+          received_on: string
+          source_id?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          description?: string
+          household_id?: string
+          id?: string
+          is_private?: boolean
+          received_by?: string
+          received_on?: string
+          source_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incomes_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incomes_household_id_source_id_fkey"
+            columns: ["household_id", "source_id"]
+            isOneToOne: false
+            referencedRelation: "income_sources"
+            referencedColumns: ["household_id", "id"]
+          },
+        ]
+      }
       items: {
         Row: {
           brand: string | null
@@ -560,12 +667,17 @@ export type Database = {
       is_member: { Args: { hid: string }; Returns: boolean }
       is_member_of_path: { Args: { path: string }; Returns: boolean }
       is_owner: { Args: { hid: string }; Returns: boolean }
+      is_sole_member: { Args: { hid: string }; Returns: boolean }
       next_due: {
         Args: { due: string; every: number; today: string; unit: string }
         Returns: string
       }
       pay_bill: {
         Args: { p_amount?: number; p_bill: string; p_paid_by: string }
+        Returns: string
+      }
+      receive_income: {
+        Args: { p_amount?: number; p_source: string }
         Returns: string
       }
       save_expense: {

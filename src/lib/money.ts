@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 // App-side money is integer paise (1/100 of the unit) to avoid float drift;
 // the DB stores numeric(12,2). Convert at the edges with toPaise / fromPaise.
 
@@ -14,6 +16,12 @@ export function toPaise(input: string): number | null {
 }
 
 export const fromPaise = (paise: number) => paise / 100;
+
+/** Form field -> positive integer paise ("1,234.50" -> 123450). */
+export const amountPaise = z
+  .string()
+  .transform((v) => toPaise(v) ?? -1)
+  .pipe(z.number().int().positive("Enter a valid amount"));
 
 /** Equal shares that sum exactly to `paise`; the first members absorb the remainder. */
 export function splitEqually(paise: number, n: number): number[] {

@@ -24,12 +24,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <nav className="ml-auto hidden items-center gap-4 text-sm sm:flex">
             <TopNav />
             <Link href="/household" className="text-muted hover:text-foreground">Household</Link>
+            <Link href="/account" className="text-muted hover:text-foreground">Account</Link>
             <form action={logout}>
               <button className="text-muted hover:text-foreground">Log out</button>
             </form>
           </nav>
-          {/* Phones: household settings (and log out, on that page) behind one icon. */}
-          <Link href="/household" aria-label="Household settings" className="-mr-2 flex size-11 items-center justify-center text-muted sm:hidden">
+          {/* Phones: account page (log out, household settings) behind one icon. */}
+          <Link href="/account" aria-label="Account" className="-mr-2 flex size-11 items-center justify-center text-muted sm:hidden">
             <svg aria-hidden viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="8" r="4" />
               <path d="M4 21a8 8 0 0 1 16 0" />
