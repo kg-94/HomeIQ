@@ -45,7 +45,7 @@ insert into tap (line) select lives_ok(
   'member can upload under own household folder');
 
 reset role;
-create temp table it as select id from items;
+create temp table it as select id from items where household_id = (select id from hh where name = 'A home');
 grant select on it to authenticated;
 
 -- As B

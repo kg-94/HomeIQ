@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Notice from "@/components/notice";
 import { todayIn } from "@/lib/dates";
+import { categoryNames } from "@/lib/categories";
 import { getHouseholdContext } from "@/lib/household";
 import { formatMoney } from "@/lib/money";
 import { deleteBill, saveBill } from "../../actions";
@@ -19,6 +20,7 @@ export default async function BillPage({
 }) {
   const [{ id }, { error }] = await Promise.all([params, searchParams]);
   const { supabase, active } = await getHouseholdContext();
+  const categories = await categoryNames(supabase, active.household.id, "expense");
   const hid = active.household.id;
   const { currency, timezone } = active.household;
 
@@ -41,7 +43,7 @@ export default async function BillPage({
       {bill.paid_at && <Notice message={`Paid on ${new Date(bill.paid_at).toLocaleDateString("en-IN", { timeZone: timezone })}.`} />}
 
       <section className="card">
-        <BillForm action={saveBill} today={todayIn(timezone)} currency={currency} bill={bill} />
+        <BillForm categories={categories} action={saveBill} today={todayIn(timezone)} currency={currency} bill={bill} />
       </section>
 
       <section className="card">

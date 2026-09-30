@@ -71,7 +71,7 @@ insert into tap (line) select is(
   ((now() at time zone 'Asia/Kolkata')::date + interval '1 month')::date, 'source moves to next date');
 
 reset role;
-create temp table src as select id from income_sources;
+create temp table src as select id from income_sources where household_id = pg_temp.a_home();
 grant select on src to authenticated;
 select pg_temp.act_as('00000000-0000-0000-0000-00000000000b');
 insert into tap (line) select throws_ok(

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Notice from "@/components/notice";
 import { todayIn } from "@/lib/dates";
+import { categoryNames } from "@/lib/categories";
 import { getHouseholdContext } from "@/lib/household";
 import { formatMoney, fromPaise, settleUp } from "@/lib/money";
 import { deleteSettlement, recordSettlement, saveExpense } from "./actions";
@@ -17,6 +18,7 @@ export default async function MoneyPage({
 }) {
   const { error } = await searchParams;
   const { supabase, user, active } = await getHouseholdContext();
+  const categories = await categoryNames(supabase, active.household.id, "expense");
   const hid = active.household.id;
   const { currency, timezone } = active.household;
   const today = todayIn(timezone);
@@ -79,7 +81,7 @@ export default async function MoneyPage({
       <details className="card" open={expenses?.length === 0}>
         <summary className="cursor-pointer font-medium marker:text-muted">Add an expense</summary>
         <div className="mt-4">
-          <ExpenseForm action={saveExpense} members={members ?? []} me={user.id} today={today} currency={currency} />
+          <ExpenseForm categories={categories} action={saveExpense} members={members ?? []} me={user.id} today={today} currency={currency} />
         </div>
       </details>
 

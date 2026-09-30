@@ -50,7 +50,7 @@ insert into tap (line) select lives_ok(
   'owner can invite');
 
 reset role;
-create temp table invite as select token from household_invites;
+create temp table invite as select token from household_invites where email = 'b@rls.test';
 grant select on invite to authenticated;
 
 -- As C: cannot redeem an invite addressed to B

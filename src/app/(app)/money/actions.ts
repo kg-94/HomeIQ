@@ -21,10 +21,11 @@ const expense = z.object({
  * Builds splits from the form: `in_<user>` checkboxes for an equal split, or
  * `share_<user>` amounts for exact. Returns an error string or the splits.
  */
-function readSplits(formData: FormData, memberIds: string[], totalPaise: number, mode: "equal" | "exact") {
+function readSplits(formData: FormData, memberIds: string[], totalPaise: number, mode: "equal" | "exact", paidBy: string) {
   if (mode === "equal") {
     const ids = memberIds.filter((id) => formData.get(`in_${id}`) === "on");
-    if (ids.length === 0) return "Pick at least one person to split with";
+    // Nobody ticked: a personal expense, all of it on the payer.
+    if (ids.length === 0) return [{ user_id: paidBy, share: fromPaise(totalPaise) }];
     const shares = splitEqually(totalPaise, ids.length);
     return ids.map((user_id, i) => ({ user_id, share: fromPaise(shares[i]) }));
   }
@@ -51,7 +52,7 @@ export async function saveExpense(formData: FormData) {
   const { supabase, active } = await getHouseholdContext();
   const hid = active.household.id;
   const { data: members } = await supabase.from("household_members").select("user_id").eq("household_id", hid);
-  const splits = readSplits(formData, members?.map((m) => m.user_id) ?? [], parsed.data.amount, parsed.data.split);
+  const splits = readSplits(formData, members?.map((m) => m.user_id) ?? [], parsed.data.amount, parsed.data.split, parsed.data.paid_by);
   if (typeof splits === "string") return back(path, splits);
 
   const { error } = await supabase.rpc("save_expense", {

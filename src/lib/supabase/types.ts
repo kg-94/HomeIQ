@@ -73,6 +73,38 @@ export type Database = {
           },
         ]
       }
+      categories: {
+        Row: {
+          created_at: string
+          household_id: string
+          id: string
+          kind: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          household_id: string
+          id?: string
+          kind: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          household_id?: string
+          id?: string
+          kind?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_splits: {
         Row: {
           expense_id: string
@@ -660,6 +692,10 @@ export type Database = {
         }
         Returns: string
       }
+      delete_category: {
+        Args: { p_id: string; p_move_to?: string }
+        Returns: undefined
+      }
       is_household_user: {
         Args: { hid: string; uid: string }
         Returns: boolean
@@ -680,6 +716,10 @@ export type Database = {
         Args: { p_amount?: number; p_source: string }
         Returns: string
       }
+      rename_category: {
+        Args: { p_id: string; p_name: string }
+        Returns: undefined
+      }
       save_expense: {
         Args: {
           p_amount: number
@@ -694,6 +734,7 @@ export type Database = {
         }
         Returns: string
       }
+      seed_default_categories: { Args: { hid: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

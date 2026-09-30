@@ -1,3 +1,5 @@
+import CategorySelect from "@/components/category-select";
+
 type Member = { user_id: string; display_name: string };
 type Values = {
   id: string;
@@ -11,8 +13,6 @@ type Values = {
   repeat_unit?: string | null;
 };
 
-const CATEGORIES = ["Salary", "Rent received", "Business", "Freelance", "Interest & dividends", "Refund", "Gift", "Other"];
-
 /**
  * `repeat`: "optional" on the add form (blank = one-off), "required" when
  * editing a recurring source, absent when editing a logged entry.
@@ -23,12 +23,14 @@ export default function IncomeForm({
   me,
   today,
   currency,
+  categories,
   values,
   repeat,
   submitLabel,
 }: {
   action: (formData: FormData) => Promise<void>;
   members: Member[];
+  categories: string[];
   me: string;
   today: string;
   currency: string;
@@ -57,11 +59,7 @@ export default function IncomeForm({
         <label htmlFor="date" className="label">{repeat ? "Next expected on" : "Received on"}</label>
         <input id="date" name="date" type="date" defaultValue={values?.date ?? today} required className="input" />
       </div>
-      <div>
-        <label htmlFor="category" className="label">Category</label>
-        <input id="category" name="category" list="income-categories" defaultValue={values?.category ?? ""} maxLength={60} className="input" />
-        <datalist id="income-categories">{CATEGORIES.map((c) => <option key={c} value={c} />)}</datalist>
-      </div>
+      <CategorySelect options={categories} defaultValue={values?.category} />
       {repeat && (
         <fieldset className="sm:col-span-2">
           <legend className="label">Repeat every</legend>

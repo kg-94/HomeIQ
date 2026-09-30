@@ -1,3 +1,5 @@
+import CategorySelect from "@/components/category-select";
+
 type Member = { user_id: string; display_name: string };
 type Expense = {
   id: string;
@@ -9,8 +11,6 @@ type Expense = {
   splits: { user_id: string; share: number }[];
 };
 
-export const CATEGORIES = ["Rent", "Electricity", "Water", "Gas", "Internet", "Groceries", "Maintenance", "Household help", "Other"];
-
 /**
  * Works without JS: both split modes are rendered; the radio picks which
  * inputs the server reads (`in_<id>` checkboxes or `share_<id>` amounts).
@@ -21,10 +21,12 @@ export default function ExpenseForm({
   me,
   today,
   currency,
+  categories,
   expense,
 }: {
   action: (formData: FormData) => Promise<void>;
   members: Member[];
+  categories: string[];
   me: string;
   today: string;
   currency: string;
@@ -55,11 +57,7 @@ export default function ExpenseForm({
         <label htmlFor="spent_on" className="label">Date</label>
         <input id="spent_on" name="spent_on" type="date" defaultValue={expense?.spent_on ?? today} required className="input" />
       </div>
-      <div>
-        <label htmlFor="category" className="label">Category</label>
-        <input id="category" name="category" list="expense-categories" defaultValue={expense?.category ?? ""} maxLength={60} className="input" />
-        <datalist id="expense-categories">{CATEGORIES.map((c) => <option key={c} value={c} />)}</datalist>
-      </div>
+      <CategorySelect options={categories} defaultValue={expense?.category} />
 
       <fieldset className="sm:col-span-2">
         <legend className="label">Split</legend>
@@ -75,7 +73,7 @@ export default function ExpenseForm({
           {members.map((m) => (
             <li key={m.user_id} className="flex items-center gap-3 px-3 py-2 text-sm">
               <label className="flex flex-1 items-center gap-2">
-                <input type="checkbox" name={`in_${m.user_id}`} defaultChecked={!expense || shareOf.has(m.user_id)} />
+                <input type="checkbox" name={`in_${m.user_id}`} defaultChecked={!!expense && shareOf.has(m.user_id)} />
                 {m.display_name}
               </label>
               <label className="sr-only" htmlFor={`share_${m.user_id}`}>Exact share for {m.display_name}</label>
@@ -90,7 +88,9 @@ export default function ExpenseForm({
             </li>
           ))}
         </ul>
-        <p className="mt-1 text-xs text-muted">Ticks are used for equal splits; amounts for exact splits (they must add up).</p>
+        <p className="mt-1 text-xs text-muted">
+          Tick people to split equally; leave everyone unticked for a personal expense (only the payer). For exact splits, enter amounts (they must add up).
+        </p>
       </fieldset>
 
       <div className="sm:col-span-2">

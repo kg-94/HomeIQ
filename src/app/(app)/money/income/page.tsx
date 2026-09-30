@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Notice from "@/components/notice";
 import { dueGroup, formatDue, repeatLabel, todayIn } from "@/lib/dates";
+import { categoryNames } from "@/lib/categories";
 import { getHouseholdContext } from "@/lib/household";
 import { formatMoney } from "@/lib/money";
 import MoneyTabs from "../money-tabs";
@@ -24,6 +25,7 @@ export default async function IncomePage({
 }) {
   const { error } = await searchParams;
   const { supabase, user, active } = await getHouseholdContext();
+  const categories = await categoryNames(supabase, active.household.id, "income");
   const hid = active.household.id;
   const { currency, timezone } = active.household;
   const today = todayIn(timezone);
@@ -112,7 +114,7 @@ export default async function IncomePage({
       <details className="card" open={!sources?.length && !incomes?.length}>
         <summary className="cursor-pointer font-medium marker:text-muted">Add income</summary>
         <div className="mt-4">
-          <IncomeForm action={addIncome} members={members ?? []} me={user.id} today={today} currency={currency} repeat="optional" submitLabel="Add income" />
+          <IncomeForm categories={categories} action={addIncome} members={members ?? []} me={user.id} today={today} currency={currency} repeat="optional" submitLabel="Add income" />
         </div>
       </details>
 

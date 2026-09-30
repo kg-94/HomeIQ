@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Notice from "@/components/notice";
 import { todayIn } from "@/lib/dates";
+import { categoryNames } from "@/lib/categories";
 import { getHouseholdContext } from "@/lib/household";
 import { deleteIncome, updateIncome } from "../actions";
 import IncomeForm from "../income-form";
@@ -18,6 +19,7 @@ export default async function IncomeEntryPage({
 }) {
   const [{ id }, { error }] = await Promise.all([params, searchParams]);
   const { supabase, user, active } = await getHouseholdContext();
+  const categories = await categoryNames(supabase, active.household.id, "income");
   const hid = active.household.id;
   const [{ data: income }, { data: members }] = await Promise.all([
     supabase
@@ -36,7 +38,7 @@ export default async function IncomeEntryPage({
       <h1 className="text-2xl font-semibold">{income.description}</h1>
       <Notice error={error} />
       <section className="card">
-        <IncomeForm
+        <IncomeForm categories={categories}
           action={updateIncome}
           members={members ?? []}
           me={user.id}

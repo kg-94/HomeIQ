@@ -1,4 +1,4 @@
-import { CATEGORIES } from "../expense-form";
+import CategorySelect from "@/components/category-select";
 
 type Bill = {
   id: string;
@@ -17,11 +17,13 @@ export default function BillForm({
   action,
   today,
   currency,
+  categories,
   bill,
 }: {
   action: (formData: FormData) => Promise<void>;
   today: string;
   currency: string;
+  categories: string[];
   bill?: Bill;
 }) {
   return (
@@ -43,11 +45,7 @@ export default function BillForm({
         <label htmlFor="due_date" className="label">Next due</label>
         <input id="due_date" name="due_date" type="date" defaultValue={bill?.due_date ?? today} required className="input" />
       </div>
-      <div>
-        <label htmlFor="category" className="label">Category</label>
-        <input id="category" name="category" list="bill-categories" defaultValue={bill?.category ?? ""} maxLength={60} className="input" />
-        <datalist id="bill-categories">{CATEGORIES.map((c) => <option key={c} value={c} />)}</datalist>
-      </div>
+      <CategorySelect options={categories} defaultValue={bill?.category} />
       <fieldset>
         <legend className="label">Repeat every</legend>
         <div className="flex gap-2">

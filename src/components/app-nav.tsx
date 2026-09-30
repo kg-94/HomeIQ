@@ -24,12 +24,12 @@ const NAV = [
 const isActive = (pathname: string, href: string) =>
   href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 
-/** Top-bar links from sm up. */
+/** Top-bar links from sm up (same items as the phone tab bar). */
 export function TopNav() {
   const pathname = usePathname();
   return (
     <>
-      {NAV.slice(1).map((n) => (
+      {NAV.map((n) => (
         <Link
           key={n.href}
           href={n.href}

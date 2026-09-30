@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Notice from "@/components/notice";
 import { dueGroup, formatDue, repeatLabel, todayIn } from "@/lib/dates";
+import { categoryNames } from "@/lib/categories";
 import { getHouseholdContext } from "@/lib/household";
 import { payBill, saveBill } from "../actions";
 import MoneyTabs from "../money-tabs";
@@ -16,6 +17,7 @@ export default async function BillsPage({
 }) {
   const { error } = await searchParams;
   const { supabase, user, active } = await getHouseholdContext();
+  const categories = await categoryNames(supabase, active.household.id, "expense");
   const hid = active.household.id;
   const { currency, timezone } = active.household;
   const today = todayIn(timezone);
@@ -38,7 +40,7 @@ export default async function BillsPage({
       <details className="card" open={bills?.length === 0}>
         <summary className="cursor-pointer font-medium marker:text-muted">Add a bill</summary>
         <div className="mt-4">
-          <BillForm action={saveBill} today={today} currency={currency} />
+          <BillForm categories={categories} action={saveBill} today={today} currency={currency} />
         </div>
       </details>
 

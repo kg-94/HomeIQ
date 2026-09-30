@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Notice from "@/components/notice";
 import { todayIn } from "@/lib/dates";
+import { categoryNames } from "@/lib/categories";
 import { getHouseholdContext } from "@/lib/household";
 import { deleteExpense, saveExpense } from "../../actions";
 import ExpenseForm from "../../expense-form";
@@ -18,6 +19,7 @@ export default async function ExpensePage({
 }) {
   const [{ id }, { error }] = await Promise.all([params, searchParams]);
   const { supabase, user, active } = await getHouseholdContext();
+  const categories = await categoryNames(supabase, active.household.id, "expense");
   const hid = active.household.id;
 
   const [{ data: expense }, { data: members }] = await Promise.all([
@@ -37,7 +39,7 @@ export default async function ExpensePage({
       <h1 className="text-2xl font-semibold">{expense.description}</h1>
       <Notice error={error} />
       <section className="card">
-        <ExpenseForm
+        <ExpenseForm categories={categories}
           action={saveExpense}
           members={members ?? []}
           me={user.id}

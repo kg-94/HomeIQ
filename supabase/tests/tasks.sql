@@ -41,7 +41,7 @@ from (values
 ) as t (title, due, every, unit);
 
 reset role;
-create temp table tk as select id, title from tasks;
+create temp table tk as select id, title from tasks where household_id = (select id from hh where name = 'A home');
 grant select on tk to authenticated;
 select pg_temp.act_as('00000000-0000-0000-0000-00000000000a');
 
