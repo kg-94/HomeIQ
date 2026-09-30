@@ -1,31 +1,49 @@
-# IDE / Editor
-*.iml
-*.iws
-*.ipr
-.idea/
-.vscode/
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Build and Output
-build/
-bin/
-gen/
-out/
-captures/
-.externalNativeBuild/
-.cxx/
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# Gradle Cache
-.gradle/
+# testing
+/coverage
 
-# Local configurations
-local.properties
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
 .DS_Store
+*.pem
 
-# Log files
-*.log
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-# Mobile specific
-*.apk
-*.aar
-*.ap_
-*.dex
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# cloudflare / opennext
+.open-next
+.wrangler
+.dev.vars
+
+# secrets
+db_password
