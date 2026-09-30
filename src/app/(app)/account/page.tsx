@@ -4,6 +4,7 @@ import { logout } from "@/app/auth/actions";
 import { CONTACT_EMAIL } from "@/components/legal-page";
 import Notice from "@/components/notice";
 import { getHouseholdContext } from "@/lib/household";
+import { switchHousehold } from "../household/actions";
 import { updateMyName } from "./actions";
 
 export const metadata: Metadata = { title: "Account" };
@@ -71,10 +72,20 @@ export default async function AccountPage({
         <ul className="mt-3 space-y-4">
           {memberships.map((m) => (
             <li key={m.household.id}>
-              <p className="text-sm">
-                <span className="font-medium">{m.household.name}</span>
-                <span className="ml-2 rounded bg-foreground/5 px-1.5 py-0.5 text-xs text-muted">{m.role}</span>
-              </p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="min-w-0 truncate text-sm">
+                  <span className="font-medium">{m.household.name}</span>
+                  <span className="ml-2 rounded bg-foreground/5 px-1.5 py-0.5 text-xs text-muted">{m.role}</span>
+                </p>
+                {m.household.id === active.household.id ? (
+                  <span className="shrink-0 text-xs text-muted">Current</span>
+                ) : (
+                  <form action={switchHousehold}>
+                    <input type="hidden" name="household_id" value={m.household.id} />
+                    <button className="link -my-2 py-2 text-sm">Switch</button>
+                  </form>
+                )}
+              </div>
               <form action={updateMyName} className="mt-2 flex gap-2">
                 <input type="hidden" name="household_id" value={m.household.id} />
                 <label htmlFor={`name-${m.household.id}`} className="sr-only">Your name in {m.household.name}</label>
@@ -85,6 +96,7 @@ export default async function AccountPage({
           ))}
         </ul>
         <p className="mt-3 text-xs text-muted">This is the name other members see in that household.</p>
+        <Link href="/onboarding" className="btn-ghost mt-4 w-full sm:w-auto">+ Create another household</Link>
       </section>
 
       <div className="flex flex-col gap-3 sm:flex-row">

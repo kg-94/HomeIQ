@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import AuthShell from "@/components/auth-shell";
 import { createHousehold } from "@/app/(app)/household/actions";
 import { logout } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: "Set up your household" };
+export const metadata: Metadata = { title: "Create a household" };
 
 export default async function OnboardingPage({
   searchParams,
@@ -16,11 +17,21 @@ export default async function OnboardingPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  // Already in a household: this is "create another", not first-time setup.
+  const { count } = await supabase
+    .from("household_members")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user?.id ?? "");
+  const another = (count ?? 0) > 0;
 
   return (
     <AuthShell
-      title="Set up your household"
-      subtitle="You can invite everyone else next. Got an invite link? Open it instead."
+      title={another ? "Create another household" : "Set up your household"}
+      subtitle={
+        another
+          ? "You'll be its owner. Switch between your households from the top bar or your Account page."
+          : "You can invite everyone else next. Got an invite link? Open it instead."
+      }
       error={error}
     >
       <form action={createHousehold} className="space-y-4">
@@ -38,9 +49,15 @@ export default async function OnboardingPage({
         </div>
         <button className="btn w-full">Create household</button>
       </form>
-      <form action={logout} className="mt-5 text-center">
-        <button className="text-sm text-muted hover:underline">Log out</button>
-      </form>
+      {another ? (
+        <p className="mt-5 text-center">
+          <Link href="/" className="text-sm text-muted hover:underline">Cancel</Link>
+        </p>
+      ) : (
+        <form action={logout} className="mt-5 text-center">
+          <button className="text-sm text-muted hover:underline">Log out</button>
+        </form>
+      )}
     </AuthShell>
   );
 }
