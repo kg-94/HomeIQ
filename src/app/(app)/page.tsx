@@ -1,15 +1,22 @@
 import Link from "next/link";
 import { addDays, formatDue, todayIn } from "@/lib/dates";
 import { getHouseholdContext } from "@/lib/household";
-
-const upcoming = ["Bills & expenses"];
+import { formatMoney } from "@/lib/money";
 
 export default async function HomePage() {
-  const { supabase, active } = await getHouseholdContext();
+  const { supabase, user, active } = await getHouseholdContext();
   const today = todayIn(active.household.timezone);
 
   const hid = active.household.id;
-  const [{ data: tasks }, { count: itemCount }, { data: expiring }, { count: docCount }, { data: expiringDocs }] = await Promise.all([
+  const [
+    { data: tasks },
+    { count: itemCount },
+    { data: expiring },
+    { count: docCount },
+    { data: expiringDocs },
+    { data: bills },
+    { data: myBalance },
+  ] = await Promise.all([
     supabase
       .from("tasks")
       .select("id, title, due_date")
@@ -34,7 +41,17 @@ export default async function HomePage() {
       .gte("expires_on", today)
       .lte("expires_on", addDays(today, 30))
       .order("expires_on"),
+    supabase
+      .from("bills")
+      .select("id, name, amount, due_date")
+      .eq("household_id", hid)
+      .is("paid_at", null)
+      .lte("due_date", addDays(today, 6))
+      .order("due_date"),
+    supabase.from("member_balances").select("balance").eq("household_id", hid).eq("user_id", user.id).maybeSingle(),
   ]);
+  const balance = Number(myBalance?.balance ?? 0);
+  const fmt = (n: number) => formatMoney(n, active.household.currency);
   const overdue = tasks?.filter((t) => t.due_date < today).length ?? 0;
 
   return (
@@ -101,12 +118,23 @@ export default async function HomePage() {
             </ul>
           )}
         </Link>
-        {upcoming.map((title) => (
-          <div key={title} className="card">
-            <h2 className="font-medium">{title}</h2>
-            <p className="mt-1 text-sm text-muted">Coming soon.</p>
-          </div>
-        ))}
+        <Link href="/money" className="card block hover:border-accent">
+          <h2 className="font-medium">Bills &amp; expenses</h2>
+          <p className={`mt-1 text-sm ${balance < 0 ? "text-danger" : "text-muted"}`}>
+            {balance > 0 ? `You are owed ${fmt(balance)}` : balance < 0 ? `You owe ${fmt(-balance)}` : "All settled up"}
+            {bills?.length ? ` · ${bills.length} bill${bills.length > 1 ? "s" : ""} due this week` : ""}
+          </p>
+          {bills && bills.length > 0 && (
+            <ul className="mt-3 space-y-1 text-sm">
+              {bills.slice(0, 3).map((b) => (
+                <li key={b.id} className="flex justify-between gap-3">
+                  <span className="truncate">{b.name} · {fmt(b.amount)}</span>
+                  <span className={b.due_date < today ? "text-danger" : "text-muted"}>{formatDue(b.due_date, today)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Link>
       </div>
       <p className="text-sm text-muted">
         Invite the rest of your household from <Link href="/household" className="link">Household settings</Link>.

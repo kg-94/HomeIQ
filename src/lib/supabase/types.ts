@@ -14,6 +14,148 @@ export type Database = {
   }
   public: {
     Tables: {
+      bills: {
+        Row: {
+          amount: number
+          autopay: boolean
+          category: string | null
+          created_at: string
+          created_by: string | null
+          due_date: string
+          household_id: string
+          id: string
+          name: string
+          notes: string | null
+          paid_at: string | null
+          payee: string | null
+          repeat_every: number | null
+          repeat_unit: string | null
+        }
+        Insert: {
+          amount: number
+          autopay?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date: string
+          household_id: string
+          id?: string
+          name: string
+          notes?: string | null
+          paid_at?: string | null
+          payee?: string | null
+          repeat_every?: number | null
+          repeat_unit?: string | null
+        }
+        Update: {
+          amount?: number
+          autopay?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string
+          household_id?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          paid_at?: string | null
+          payee?: string | null
+          repeat_every?: number | null
+          repeat_unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bills_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_splits: {
+        Row: {
+          expense_id: string
+          household_id: string
+          share: number
+          user_id: string
+        }
+        Insert: {
+          expense_id: string
+          household_id: string
+          share: number
+          user_id: string
+        }
+        Update: {
+          expense_id?: string
+          household_id?: string
+          share?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_splits_household_id_expense_id_fkey"
+            columns: ["household_id", "expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["household_id", "id"]
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          amount: number
+          bill_id: string | null
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          household_id: string
+          id: string
+          paid_by: string
+          spent_on: string
+        }
+        Insert: {
+          amount: number
+          bill_id?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          household_id: string
+          id?: string
+          paid_by: string
+          spent_on: string
+        }
+        Update: {
+          amount?: number
+          bill_id?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          household_id?: string
+          id?: string
+          paid_by?: string
+          spent_on?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_household_id_bill_id_fkey"
+            columns: ["household_id", "bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["household_id", "id"]
+          },
+          {
+            foreignKeyName: "expenses_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       files: {
         Row: {
           category: string | null
@@ -239,6 +381,47 @@ export type Database = {
           },
         ]
       }
+      settlements: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          from_user: string
+          household_id: string
+          id: string
+          settled_on: string
+          to_user: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          from_user: string
+          household_id: string
+          id?: string
+          settled_on: string
+          to_user: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          from_user?: string
+          household_id?: string
+          id?: string
+          settled_on?: string
+          to_user?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "settlements_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_completions: {
         Row: {
           completed_at: string
@@ -350,7 +533,14 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      member_balances: {
+        Row: {
+          balance: number | null
+          household_id: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_invite: {
@@ -366,9 +556,35 @@ export type Database = {
         }
         Returns: string
       }
+      is_household_user: {
+        Args: { hid: string; uid: string }
+        Returns: boolean
+      }
       is_member: { Args: { hid: string }; Returns: boolean }
       is_member_of_path: { Args: { path: string }; Returns: boolean }
       is_owner: { Args: { hid: string }; Returns: boolean }
+      next_due: {
+        Args: { due: string; every: number; today: string; unit: string }
+        Returns: string
+      }
+      pay_bill: {
+        Args: { p_amount?: number; p_bill: string; p_paid_by: string }
+        Returns: string
+      }
+      save_expense: {
+        Args: {
+          p_amount: number
+          p_bill?: string
+          p_category: string
+          p_description: string
+          p_household: string
+          p_id: string
+          p_paid_by: string
+          p_spent_on: string
+          p_splits: Json
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
