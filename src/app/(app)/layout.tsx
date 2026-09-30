@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AppVersion from "@/components/app-version";
 import HouseholdSwitcher from "@/components/household-switcher";
 import { logout } from "@/app/auth/actions";
 import { getHouseholdContext } from "@/lib/household";
@@ -30,6 +31,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </header>
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
+      <AppVersion />
     </>
   );
 }

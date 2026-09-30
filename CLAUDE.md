@@ -30,3 +30,4 @@ Invites target a phone or an email and only redeem for the matching account (`ac
 - Active household = `hid` cookie, resolved by `getHouseholdContext()` in `src/lib/household.ts`.
 - Money is `numeric(12,2)`; never floats.
 - Secrets live in `.env.local` (git-ignored), never in the repo.
+- Version: the husky pre-commit hook bumps the patch version on every commit; don't bump it by hand. The footer shows `v<version> · <commit>`.

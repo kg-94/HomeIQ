@@ -1,3 +1,4 @@
+import AppVersion from "./app-version";
 import Notice from "./notice";
 
 export default function AuthShell({
@@ -27,6 +28,7 @@ export default function AuthShell({
             {children}
           </div>
         </div>
+        <AppVersion />
       </div>
     </main>
   );

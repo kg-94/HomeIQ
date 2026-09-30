@@ -1,0 +1,3 @@
+# Bump the patch version on every commit and include it in that commit.
+npm version patch --no-git-tag-version --allow-same-version >/dev/null
+git add package.json package-lock.json
