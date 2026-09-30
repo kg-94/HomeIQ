@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Notice from "@/components/notice";
-import { todayIn, warrantyStatus } from "@/lib/dates";
+import { expiryStatus, EXPIRY_TONE, todayIn } from "@/lib/dates";
 import { getHouseholdContext } from "@/lib/household";
 import { createItem } from "./actions";
 import ItemForm from "./item-form";
 
 export const metadata: Metadata = { title: "Inventory" };
-
-const TONE = { ok: "text-muted", danger: "text-danger", muted: "text-muted line-through" } as const;
 
 export default async function InventoryPage({
   searchParams,
@@ -52,7 +50,7 @@ export default async function InventoryPage({
       ) : (
         <ul className="divide-y divide-border rounded-lg border border-border bg-surface">
           {items?.map((item) => {
-            const warranty = warrantyStatus(item.warranty_expires_on, today);
+            const warranty = expiryStatus(item.warranty_expires_on, today);
             const fileCount = item.files[0]?.count ?? 0;
             return (
               <li key={item.id}>
@@ -65,7 +63,7 @@ export default async function InventoryPage({
                         .join(" · ")}
                     </span>
                   </span>
-                  {warranty && <span className={`shrink-0 text-sm ${TONE[warranty.tone]}`}>{warranty.label}</span>}
+                  {warranty && <span className={`shrink-0 text-sm ${EXPIRY_TONE[warranty.tone]}`}>{warranty.label}</span>}
                 </Link>
               </li>
             );

@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 create temp table tap (at timestamptz default clock_timestamp(), line text);
 grant all on tap to authenticated, anon;
-insert into tap (line) select plan(10);
+insert into tap (line) select plan(11);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'a@rls.test'),
@@ -35,6 +35,11 @@ insert into tap (line) select throws_ok(
   $$ insert into files (household_id, kind, name, mime, size, storage_path)
      select id, 'photo', 'x.png', 'image/png', 1, id || '/somewhere-else' from hh where name = 'A home' $$,
   '23514', null, 'storage_path must be <household>/<file id>');
+insert into tap (line) select throws_ok(
+  $$ insert into files (id, household_id, kind, name, mime, size, storage_path, category)
+     select f.id, h.id, 'document', 'x.pdf', 'application/pdf', 1, h.id || '/' || f.id, 'bogus'
+     from hh h, (select gen_random_uuid() as id) f where h.name = 'A home' $$,
+  '23514', null, 'document category must be known');
 insert into tap (line) select lives_ok(
   $$ insert into storage.objects (bucket_id, name) select 'household-files', id || '/obj' from hh where name = 'A home' $$,
   'member can upload under own household folder');

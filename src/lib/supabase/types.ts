@@ -16,7 +16,9 @@ export type Database = {
     Tables: {
       files: {
         Row: {
+          category: string | null
           created_at: string
+          expires_on: string | null
           household_id: string
           id: string
           item_id: string | null
@@ -28,7 +30,9 @@ export type Database = {
           uploaded_by: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
+          expires_on?: string | null
           household_id: string
           id?: string
           item_id?: string | null
@@ -40,7 +44,9 @@ export type Database = {
           uploaded_by?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string
+          expires_on?: string | null
           household_id?: string
           id?: string
           item_id?: string | null

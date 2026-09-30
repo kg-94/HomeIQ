@@ -2,14 +2,14 @@ import Link from "next/link";
 import { addDays, formatDue, todayIn } from "@/lib/dates";
 import { getHouseholdContext } from "@/lib/household";
 
-const upcoming = ["Bills & expenses", "Documents"];
+const upcoming = ["Bills & expenses"];
 
 export default async function HomePage() {
   const { supabase, active } = await getHouseholdContext();
   const today = todayIn(active.household.timezone);
 
   const hid = active.household.id;
-  const [{ data: tasks }, { count: itemCount }, { data: expiring }] = await Promise.all([
+  const [{ data: tasks }, { count: itemCount }, { data: expiring }, { count: docCount }, { data: expiringDocs }] = await Promise.all([
     supabase
       .from("tasks")
       .select("id, title, due_date")
@@ -25,6 +25,15 @@ export default async function HomePage() {
       .gte("warranty_expires_on", today)
       .lte("warranty_expires_on", addDays(today, 30))
       .order("warranty_expires_on"),
+    supabase.from("files").select("*", { count: "exact", head: true }).eq("household_id", hid).eq("kind", "document"),
+    supabase
+      .from("files")
+      .select("id, name, expires_on")
+      .eq("household_id", hid)
+      .eq("kind", "document")
+      .gte("expires_on", today)
+      .lte("expires_on", addDays(today, 30))
+      .order("expires_on"),
   ]);
   const overdue = tasks?.filter((t) => t.due_date < today).length ?? 0;
 
@@ -70,6 +79,23 @@ export default async function HomePage() {
                 <li key={i.id} className="flex justify-between gap-3">
                   <span className="truncate">{i.name}</span>
                   <span className="text-danger">{formatDue(i.warranty_expires_on!, today)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Link>
+        <Link href="/documents" className="card block hover:border-accent">
+          <h2 className="font-medium">Documents</h2>
+          <p className="mt-1 text-sm text-muted">
+            {docCount ? `${docCount} document${docCount > 1 ? "s" : ""}` : "Insurance, IDs, lease and tax papers."}
+            {expiringDocs?.length ? <span className="text-danger"> · {expiringDocs.length} expiring soon</span> : null}
+          </p>
+          {expiringDocs && expiringDocs.length > 0 && (
+            <ul className="mt-3 space-y-1 text-sm">
+              {expiringDocs.slice(0, 3).map((d) => (
+                <li key={d.id} className="flex justify-between gap-3">
+                  <span className="truncate">{d.name}</span>
+                  <span className="text-danger">{formatDue(d.expires_on!, today)}</span>
                 </li>
               ))}
             </ul>

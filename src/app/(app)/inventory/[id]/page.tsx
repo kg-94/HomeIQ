@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Notice from "@/components/notice";
-import { formatDue, repeatLabel, todayIn, warrantyStatus } from "@/lib/dates";
+import { expiryStatus, formatDue, repeatLabel, todayIn } from "@/lib/dates";
 import { getHouseholdContext } from "@/lib/household";
 import { formatMoney } from "@/lib/money";
 import { FILE_KINDS, formatBytes } from "@/lib/storage";
@@ -34,7 +34,7 @@ export default async function ItemPage({
       .order("due_date"),
   ]);
   if (!item) notFound();
-  const warranty = warrantyStatus(item.warranty_expires_on, today);
+  const warranty = expiryStatus(item.warranty_expires_on, today);
   const here = `/inventory/${id}`;
 
   return (

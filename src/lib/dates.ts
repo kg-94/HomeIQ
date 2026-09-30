@@ -39,10 +39,14 @@ export function daysUntil(iso: string, today: string): number {
   return Math.round((Date.parse(`${iso}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
 }
 
-export function warrantyStatus(expires: string | null, today: string) {
+/** Badge for anything that expires (warranties, policies, IDs); red for the last 30 days. */
+export function expiryStatus(expires: string | null, today: string, noun = "Warranty") {
   if (!expires) return null;
   const days = daysUntil(expires, today);
-  if (days < 0) return { tone: "muted", label: "Warranty expired" } as const;
-  if (days <= 30) return { tone: "danger", label: days === 0 ? "Warranty ends today" : `Warranty ends in ${days}d` } as const;
-  return { tone: "ok", label: `Warranty till ${formatDue(expires, today)}` } as const;
+  const say = (s: string) => (noun ? `${noun} ${s}` : s[0].toUpperCase() + s.slice(1));
+  if (days < 0) return { tone: "muted", label: say("expired") } as const;
+  if (days <= 30) return { tone: "danger", label: say(days === 0 ? "ends today" : `ends in ${days}d`) } as const;
+  return { tone: "ok", label: say(`till ${formatDue(expires, today)}`) } as const;
 }
+
+export const EXPIRY_TONE = { ok: "text-muted", danger: "text-danger", muted: "text-muted line-through" } as const;
