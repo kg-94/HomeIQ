@@ -33,3 +33,16 @@ export function formatDue(due: string, today: string): string {
 
 export const repeatLabel = (every: number | null, unit: string | null) =>
   every ? (every === 1 ? `Every ${unit}` : `Every ${every} ${unit}s`) : null;
+
+/** Days from `today` to `iso` (negative if past). */
+export function daysUntil(iso: string, today: string): number {
+  return Math.round((Date.parse(`${iso}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
+}
+
+export function warrantyStatus(expires: string | null, today: string) {
+  if (!expires) return null;
+  const days = daysUntil(expires, today);
+  if (days < 0) return { tone: "muted", label: "Warranty expired" } as const;
+  if (days <= 30) return { tone: "danger", label: days === 0 ? "Warranty ends today" : `Warranty ends in ${days}d` } as const;
+  return { tone: "ok", label: `Warranty till ${formatDue(expires, today)}` } as const;
+}

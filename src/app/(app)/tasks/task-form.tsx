@@ -1,10 +1,12 @@
 type Member = { user_id: string; display_name: string };
+type Item = { id: string; name: string };
 type Task = {
   id: string;
   title: string;
   notes: string | null;
   due_date: string;
   assignee_id: string | null;
+  item_id: string | null;
   repeat_every: number | null;
   repeat_unit: string | null;
 };
@@ -12,12 +14,16 @@ type Task = {
 export default function TaskForm({
   action,
   members,
+  items,
+  defaultItemId,
   today,
   task,
   submitLabel,
 }: {
   action: (formData: FormData) => Promise<void>;
   members: Member[];
+  items: Item[];
+  defaultItemId?: string;
   today: string;
   task?: Task;
   submitLabel: string;
@@ -42,6 +48,17 @@ export default function TaskForm({
           ))}
         </select>
       </div>
+      {items.length > 0 && (
+        <div className="sm:col-span-2">
+          <label htmlFor="item_id" className="label">For item</label>
+          <select id="item_id" name="item_id" defaultValue={task?.item_id ?? defaultItemId ?? ""} className="input">
+            <option value="">—</option>
+            {items.map((i) => (
+              <option key={i.id} value={i.id}>{i.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
       <fieldset className="sm:col-span-2">
         <legend className="label">Repeat every</legend>
         <div className="flex gap-2">

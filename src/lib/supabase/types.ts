@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      files: {
+        Row: {
+          created_at: string
+          household_id: string
+          id: string
+          item_id: string | null
+          kind: string
+          mime: string
+          name: string
+          size: number
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          household_id: string
+          id?: string
+          item_id?: string | null
+          kind: string
+          mime: string
+          name: string
+          size: number
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          household_id?: string
+          id?: string
+          item_id?: string | null
+          kind?: string
+          mime?: string
+          name?: string
+          size?: number
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "files_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_household_id_item_id_fkey"
+            columns: ["household_id", "item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["household_id", "id"]
+          },
+        ]
+      }
       household_invites: {
         Row: {
           accepted_at: string | null
@@ -120,6 +174,65 @@ export type Database = {
         }
         Relationships: []
       }
+      items: {
+        Row: {
+          brand: string | null
+          category: string | null
+          created_at: string
+          created_by: string | null
+          household_id: string
+          id: string
+          location: string | null
+          model: string | null
+          name: string
+          notes: string | null
+          price: number | null
+          purchased_on: string | null
+          serial_number: string | null
+          warranty_expires_on: string | null
+        }
+        Insert: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          household_id: string
+          id?: string
+          location?: string | null
+          model?: string | null
+          name: string
+          notes?: string | null
+          price?: number | null
+          purchased_on?: string | null
+          serial_number?: string | null
+          warranty_expires_on?: string | null
+        }
+        Update: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          household_id?: string
+          id?: string
+          location?: string | null
+          model?: string | null
+          name?: string
+          notes?: string | null
+          price?: number | null
+          purchased_on?: string | null
+          serial_number?: string | null
+          warranty_expires_on?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "items_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_completions: {
         Row: {
           completed_at: string
@@ -171,6 +284,7 @@ export type Database = {
           due_date: string
           household_id: string
           id: string
+          item_id: string | null
           notes: string | null
           repeat_every: number | null
           repeat_unit: string | null
@@ -184,6 +298,7 @@ export type Database = {
           due_date: string
           household_id: string
           id?: string
+          item_id?: string | null
           notes?: string | null
           repeat_every?: number | null
           repeat_unit?: string | null
@@ -197,6 +312,7 @@ export type Database = {
           due_date?: string
           household_id?: string
           id?: string
+          item_id?: string | null
           notes?: string | null
           repeat_every?: number | null
           repeat_unit?: string | null
@@ -216,6 +332,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "households"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_household_id_item_id_fkey"
+            columns: ["household_id", "item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["household_id", "id"]
           },
         ]
       }
@@ -238,6 +361,7 @@ export type Database = {
         Returns: string
       }
       is_member: { Args: { hid: string }; Returns: boolean }
+      is_member_of_path: { Args: { path: string }; Returns: boolean }
       is_owner: { Args: { hid: string }; Returns: boolean }
     }
     Enums: {

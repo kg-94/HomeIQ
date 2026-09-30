@@ -20,10 +20,10 @@ export default async function TaskPage({
   const { supabase, active } = await getHouseholdContext();
   const hid = active.household.id;
 
-  const [{ data: task }, { data: members }, { data: history }] = await Promise.all([
+  const [{ data: task }, { data: members }, { data: history }, { data: items }] = await Promise.all([
     supabase
       .from("tasks")
-      .select("id, title, notes, due_date, assignee_id, repeat_every, repeat_unit, completed_at")
+      .select("id, title, notes, due_date, assignee_id, item_id, repeat_every, repeat_unit, completed_at")
       .eq("id", id)
       .eq("household_id", hid)
       .maybeSingle(),
@@ -34,6 +34,7 @@ export default async function TaskPage({
       .eq("task_id", id)
       .order("completed_at", { ascending: false })
       .limit(20),
+    supabase.from("items").select("id, name").eq("household_id", hid).order("name"),
   ]);
   if (!task) notFound();
   const nameOf = new Map(members?.map((m) => [m.user_id, m.display_name]));
@@ -48,7 +49,7 @@ export default async function TaskPage({
       )}
 
       <section className="card">
-        <TaskForm action={updateTask} members={members ?? []} today={todayIn(active.household.timezone)} task={task} submitLabel="Save" />
+        <TaskForm action={updateTask} members={members ?? []} items={items ?? []} today={todayIn(active.household.timezone)} task={task} submitLabel="Save" />
       </section>
 
       <section className="card">

@@ -17,24 +17,25 @@ const GROUPS: { key: DueGroup; title: string }[] = [
 export default async function TasksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; mine?: string }>;
+  searchParams: Promise<{ error?: string; mine?: string; item?: string }>;
 }) {
-  const { error, mine } = await searchParams;
+  const { error, mine, item } = await searchParams;
   const { supabase, user, active } = await getHouseholdContext();
   const hid = active.household.id;
   const today = todayIn(active.household.timezone);
 
   let query = supabase
     .from("tasks")
-    .select("id, title, due_date, repeat_every, repeat_unit, assignee_id")
+    .select("id, title, due_date, repeat_every, repeat_unit, assignee_id, item:items(name)")
     .eq("household_id", hid)
     .is("completed_at", null)
     .order("due_date");
   if (mine) query = query.eq("assignee_id", user.id);
 
-  const [{ data: tasks }, { data: members }] = await Promise.all([
+  const [{ data: tasks }, { data: members }, { data: items }] = await Promise.all([
     query,
     supabase.from("household_members").select("user_id, display_name").eq("household_id", hid).order("created_at"),
+    supabase.from("items").select("id, name").eq("household_id", hid).order("name"),
   ]);
   const nameOf = new Map(members?.map((m) => [m.user_id, m.display_name]));
 
@@ -49,10 +50,10 @@ export default async function TasksPage({
       </div>
       <Notice error={error} />
 
-      <details className="card group" open={tasks?.length === 0}>
+      <details className="card group" open={tasks?.length === 0 || !!item}>
         <summary className="cursor-pointer font-medium marker:text-muted">Add a task</summary>
         <div className="mt-4">
-          <TaskForm action={createTask} members={members ?? []} today={today} submitLabel="Add task" />
+          <TaskForm action={createTask} members={members ?? []} items={items ?? []} defaultItemId={item} today={today} submitLabel="Add task" />
         </div>
       </details>
 
@@ -82,7 +83,7 @@ export default async function TasksPage({
                   <Link href={`/tasks/${t.id}`} className="min-w-0 flex-1">
                     <span className="block truncate">{t.title}</span>
                     <span className="block text-xs text-muted">
-                      {[repeatLabel(t.repeat_every, t.repeat_unit), t.assignee_id && nameOf.get(t.assignee_id)]
+                      {[t.item?.name, repeatLabel(t.repeat_every, t.repeat_unit), t.assignee_id && nameOf.get(t.assignee_id)]
                         .filter(Boolean)
                         .join(" · ")}
                     </span>

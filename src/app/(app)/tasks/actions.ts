@@ -11,6 +11,7 @@ const task = z
     notes: z.string().trim().max(2000).transform((v) => v || null),
     due_date: z.iso.date("Pick a due date"),
     assignee_id: z.string().transform((v) => v || null),
+    item_id: z.string().optional().transform((v) => v || null),
     repeat_every: z.coerce.number().int().min(0).max(999),
     repeat_unit: z.enum(["day", "week", "month", "year"]),
   })
