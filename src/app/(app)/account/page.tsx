@@ -5,7 +5,8 @@ import Notice from "@/components/notice";
 import { TagChips } from "@/components/tags";
 import { getHouseholdContext } from "@/lib/household";
 import { switchHousehold } from "../household/actions";
-import { deleteAccount, updateMyName } from "./actions";
+import { avatarUrl } from "@/lib/avatar";
+import { deleteAccount, resetAvatar, updateAvatar, updateMyName } from "./actions";
 
 export const metadata: Metadata = { title: "Account" };
 
@@ -28,7 +29,8 @@ export default async function AccountPage({
   );
   const meta = user.user_metadata;
   const name: string = meta.full_name ?? meta.name ?? active.display_name;
-  const avatar: string | undefined = meta.avatar_url ?? meta.picture;
+  const avatar = avatarUrl(user);
+  const hasCustomPhoto = Boolean(meta.custom_avatar_path);
   // app_metadata.provider is the *latest* sign-in method; prefer the linked Google/Discord identity.
   const linked: string[] = user.app_metadata.providers ?? [user.app_metadata.provider ?? ""];
   const provider = linked.map((p) => PROVIDER[p]).find(Boolean);
@@ -40,7 +42,8 @@ export default async function AccountPage({
       <h1 className="text-2xl font-semibold">Account</h1>
       <Notice error={error} message={message} />
 
-      <section className="card flex items-center gap-4">
+      <section className="card">
+        <div className="flex items-center gap-4">
         {avatar ? (
           // eslint-disable-next-line @next/next/no-img-element -- provider-hosted avatar, tiny
           <img src={avatar} alt="" referrerPolicy="no-referrer" className="size-16 shrink-0 rounded-full bg-foreground/5 object-cover" />
@@ -53,6 +56,20 @@ export default async function AccountPage({
           <p className="truncate text-lg font-medium">{name}</p>
           <p className="truncate text-sm text-muted">{user.email}</p>
         </div>
+        </div>
+        <form action={updateAvatar} className="mt-4 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:items-center">
+          <label htmlFor="photo" className="text-sm font-medium sm:w-32">Profile photo</label>
+          <input id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required className="min-w-0 flex-1 text-sm" />
+          <button className="btn-ghost shrink-0">Upload</button>
+        </form>
+        <p className="mt-1 text-xs text-muted">JPG, PNG or WebP, up to 5 MB. Shown to members of your households.</p>
+        {hasCustomPhoto && (
+          <form action={resetAvatar} className="mt-2">
+            <button className="-my-2 py-2 text-sm text-muted hover:text-foreground hover:underline">
+              Use my {provider ?? "sign-in"} photo instead
+            </button>
+          </form>
+        )}
       </section>
 
       <section className="card">
@@ -71,7 +88,7 @@ export default async function AccountPage({
           ))}
         </dl>
         <p className="mt-3 text-xs text-muted">
-          Name, email and photo come from your {provider ?? "sign-in"} account; change them there and they update the next time you sign in.
+          Name and email come from your {provider ?? "sign-in"} account; change them there and they update the next time you sign in.
         </p>
       </section>
 

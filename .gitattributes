@@ -1,0 +1,2 @@
+# Store and check out text files with LF on every OS (silences CRLF warnings on Windows).
+* text=auto eol=lf

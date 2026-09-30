@@ -3,11 +3,12 @@ import { BottomNav, TopNav } from "@/components/app-nav";
 import AppVersion from "@/components/app-version";
 import HouseholdSwitcher from "@/components/household-switcher";
 import { logout } from "@/app/auth/actions";
+import { avatarUrl } from "@/lib/avatar";
 import { getHouseholdContext } from "@/lib/household";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, memberships, active } = await getHouseholdContext();
-  const avatar: string | undefined = user.user_metadata.avatar_url ?? user.user_metadata.picture;
+  const avatar = avatarUrl(user);
   const initial = ((user.user_metadata.full_name as string | undefined) ?? active.display_name).charAt(0).toUpperCase();
 
   return (

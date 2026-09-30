@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getHouseholdContext, HOUSEHOLD_COOKIE } from "@/lib/household";
+import { AVATAR_BUCKET, AVATAR_MAX_BYTES, AVATAR_TYPES } from "@/lib/avatar";
 import { LAST_LOGIN_COOKIE } from "@/lib/last-login";
 import { removeHouseholdFiles } from "@/lib/storage";
 
@@ -51,6 +52,10 @@ export async function deleteAccount(formData: FormData) {
     if (fileError) return back("error", fileError);
   }
 
+  // Uploaded profile photos (the DB can't remove storage objects).
+  const { data: avatars } = await supabase.storage.from(AVATAR_BUCKET).list(user.id);
+  if (avatars?.length) await supabase.storage.from(AVATAR_BUCKET).remove(avatars.map((o) => `${user.id}/${o.name}`));
+
   const { error } = await supabase.rpc("delete_my_account");
   if (error) return back("error", error.message);
 
@@ -59,4 +64,40 @@ export async function deleteAccount(formData: FormData) {
   jar.delete(HOUSEHOLD_COOKIE);
   jar.delete(LAST_LOGIN_COOKIE);
   redirect("/login?message=Your account has been deleted");
+}
+
+/** Upload a profile photo; replaces (and deletes) the previous upload. */
+export async function updateAvatar(formData: FormData) {
+  const file = formData.get("photo");
+  if (!(file instanceof File) || file.size === 0) return back("error", "Choose a photo");
+  if (!AVATAR_TYPES.includes(file.type)) return back("error", "Use a JPG, PNG or WebP image");
+  if (file.size > AVATAR_MAX_BYTES) return back("error", "Photos can be up to 5 MB");
+
+  const { supabase, user } = await getHouseholdContext();
+  const previous = user.user_metadata.custom_avatar_path as string | undefined;
+  const path = `${user.id}/${crypto.randomUUID()}.${file.type.split("/")[1]}`;
+  const { error: uploadError } = await supabase.storage
+    .from(AVATAR_BUCKET)
+    .upload(path, file, { contentType: file.type, cacheControl: "31536000" });
+  if (uploadError) return back("error", uploadError.message);
+
+  const { error } = await supabase.auth.updateUser({ data: { custom_avatar_path: path } });
+  if (error) {
+    await supabase.storage.from(AVATAR_BUCKET).remove([path]);
+    return back("error", error.message);
+  }
+  if (previous) await supabase.storage.from(AVATAR_BUCKET).remove([previous]);
+  revalidatePath("/", "layout");
+  back("message", "Photo updated");
+}
+
+/** Go back to the Google/Discord photo. */
+export async function resetAvatar() {
+  const { supabase, user } = await getHouseholdContext();
+  const previous = user.user_metadata.custom_avatar_path as string | undefined;
+  const { error } = await supabase.auth.updateUser({ data: { custom_avatar_path: null } });
+  if (error) return back("error", error.message);
+  if (previous) await supabase.storage.from(AVATAR_BUCKET).remove([previous]);
+  revalidatePath("/", "layout");
+  back("message", "Using your sign-in photo again");
 }
