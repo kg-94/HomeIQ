@@ -5,13 +5,14 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { HOUSEHOLD_COOKIE, safeNext } from "@/lib/household";
-import { decodeLastLogin, LAST_LOGIN_COOKIE, PROVIDERS } from "@/lib/last-login";
+import { decodeLastLogin, LAST_LOGIN_COOKIE } from "@/lib/last-login";
+import { ENABLED_PROVIDERS } from "@/lib/providers";
 import { createClient } from "@/lib/supabase/server";
 
-// Google / Discord only: the first OAuth login creates the account.
+// OAuth only (see lib/providers): the first login creates the account.
 export async function oauth(formData: FormData) {
   const next = safeNext(formData.get("next"));
-  const provider = z.enum(PROVIDERS).parse(formData.get("provider"));
+  const provider = z.enum(ENABLED_PROVIDERS).parse(formData.get("provider"));
   const origin = (await headers()).get("origin") ?? "";
 
   // Returning user on this device: skip Discord's approval screen and

@@ -3,6 +3,7 @@ import CopyLink from "@/components/copy-link";
 import Notice from "@/components/notice";
 import { TagChips, TagInput } from "@/components/tags";
 import { getHouseholdContext } from "@/lib/household";
+import { providerList } from "@/lib/providers";
 import { addOfflineMember, createInvite, deleteHousehold, removeMember, renameHousehold, revokeInvite, transferOwnership } from "./actions";
 
 export const metadata: Metadata = { title: "Household" };
@@ -125,7 +126,7 @@ export default async function HouseholdPage({
                   <details className="mt-1">
                     <summary className="cursor-pointer text-xs text-muted">Link to an account</summary>
                     <p className="mt-2 text-xs text-muted">
-                      Invite them by the email of their Google or Discord account. When they accept, they take over{" "}
+                      Invite them by the email of their {providerList()} account. When they accept, they take over{" "}
                       {m.display_name}&apos;s tasks, expenses, balance and income.
                     </p>
                     <form action={createInvite} className="mt-2 flex flex-col gap-2 sm:flex-row">
@@ -159,7 +160,7 @@ export default async function HouseholdPage({
         <section className="card">
           <h2 className="font-medium">Invite someone</h2>
           <p className="mt-1 text-sm text-muted">
-            Enter the email of their Google or Discord account. Only that account can use the
+            Enter the email of their {providerList()} account. Only that account can use the
             link, and it expires after 7 days.
           </p>
           <form action={createInvite} className="mt-4 flex flex-col gap-3 sm:flex-row">

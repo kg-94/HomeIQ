@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import LegalPage, { CONTACT_EMAIL, OPERATOR } from "@/components/legal-page";
+import { providerList } from "@/lib/providers";
 
 export const metadata: Metadata = { title: "Privacy Policy" };
 
@@ -14,7 +15,7 @@ export default function PrivacyPage() {
       <h2>What we collect</h2>
       <ul>
         <li>
-          <strong>Your account.</strong> When you sign in with Google or Discord, we receive your name, email address,
+          <strong>Your account.</strong> When you sign in with {providerList()}, we receive your name, email address,
           profile picture and a provider account ID. We don&apos;t receive or store a password.
         </li>
         <li>
@@ -25,7 +26,7 @@ export default function PrivacyPage() {
         <li>
           <strong>Cookies.</strong> Only what&apos;s needed to run the app: a sign-in session cookie, one that remembers
           which household you&apos;re viewing, and one that remembers the last account used on this device (its name,
-          email and whether it was Google or Discord) so logging in again is one tap. &ldquo;Not you?&rdquo; on the
+          email and which provider it was) so logging in again is one tap. &ldquo;Not you?&rdquo; on the
           login page removes it. No advertising or analytics cookies.
         </li>
         <li>
@@ -48,7 +49,7 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Service providers</strong> that run HomeIQ for us: Supabase (database, sign-in and file storage),
-          Cloudflare (hosting), and Google or Discord (sign-in only). They process data on our behalf under their own
+          Cloudflare (hosting), and {providerList()} (sign-in only). They process data on our behalf under their own
           security and privacy terms.
         </li>
         <li>
@@ -63,7 +64,7 @@ export default function PrivacyPage() {
         anything you couldn&apos;t afford to have exposed, such as full card numbers or passwords.
       </p>
 
-      <h2>Keeping and deleting your data</h2>
+      <h2 id="data-deletion">Keeping and deleting your data</h2>
       <p>
         We keep your data while your account exists. You can delete items, files and expenses yourself at any time,
         and leave a household from its settings page. You can delete your account yourself from the Account page: it
@@ -72,6 +73,13 @@ export default function PrivacyPage() {
         members&apos; balances remain correct, but they&apos;re no longer linked to your name. You can also email us at{" "}
         <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> and we&apos;ll do it within 30 days.
       </p>
+
+      <p>To delete your account and data yourself:</p>
+      <ol className="ml-5 list-decimal space-y-1">
+        <li>Sign in to HomeIQ and open <strong>Account</strong> (your photo at the top right on phones).</li>
+        <li>If you&apos;re the only owner of a household others use, make someone else owner first (Household &rarr; Members &rarr; Make owner).</li>
+        <li>Under <strong>Delete account</strong>, type DELETE and confirm. Deletion is immediate.</li>
+      </ol>
 
       <h2>Your rights</h2>
       <p>

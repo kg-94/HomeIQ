@@ -6,11 +6,11 @@ import { TagChips } from "@/components/tags";
 import { getHouseholdContext } from "@/lib/household";
 import { switchHousehold } from "../household/actions";
 import { avatarUrl } from "@/lib/avatar";
+import { PROVIDER_LABEL } from "@/lib/providers";
 import { deleteAccount, resetAvatar, updateAvatar, updateMyName } from "./actions";
 
 export const metadata: Metadata = { title: "Account" };
 
-const PROVIDER = { google: "Google", discord: "Discord" } as Record<string, string>;
 
 export default async function AccountPage({
   searchParams,
@@ -31,9 +31,9 @@ export default async function AccountPage({
   const name: string = meta.full_name ?? meta.name ?? active.display_name;
   const avatar = avatarUrl(user);
   const hasCustomPhoto = Boolean(meta.custom_avatar_path);
-  // app_metadata.provider is the *latest* sign-in method; prefer the linked Google/Discord identity.
+  // app_metadata.provider is the *latest* sign-in method; prefer the linked OAuth identity.
   const linked: string[] = user.app_metadata.providers ?? [user.app_metadata.provider ?? ""];
-  const provider = linked.map((p) => PROVIDER[p]).find(Boolean);
+  const provider = linked.map((p) => PROVIDER_LABEL[p as keyof typeof PROVIDER_LABEL]).find(Boolean);
   const date = (iso?: string) =>
     iso ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: active.household.timezone }) : "—";
 

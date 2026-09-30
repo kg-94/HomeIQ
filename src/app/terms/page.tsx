@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LegalPage, { CONTACT_EMAIL, OPERATOR } from "@/components/legal-page";
+import { providerList } from "@/lib/providers";
 
 export const metadata: Metadata = { title: "Terms of Service" };
 
@@ -21,7 +22,7 @@ export default function TermsPage() {
 
       <h2>Your account</h2>
       <ul>
-        <li>You sign in with Google or Discord and are responsible for keeping that account secure.</li>
+        <li>You sign in with {providerList()} and are responsible for keeping that account secure.</li>
         <li>You must be at least 13 years old, and old enough to agree to these terms where you live.</li>
         <li>Give accurate information and don&apos;t impersonate anyone.</li>
       </ul>

@@ -5,6 +5,7 @@ import AuthShell from "@/components/auth-shell";
 import OAuthButtons from "@/components/oauth-buttons";
 import { forgetDevice } from "@/app/auth/actions";
 import { decodeLastLogin, LAST_LOGIN_COOKIE } from "@/lib/last-login";
+import { providerList } from "@/lib/providers";
 
 export const metadata: Metadata = { title: "Log in" };
 
@@ -20,7 +21,7 @@ export default async function LoginPage({
   return (
     <AuthShell
       title={last ? `Welcome back${firstName ? `, ${firstName}` : ""}` : "Welcome to HomeIQ"}
-      subtitle={last ? (last.email ? `Continue as ${last.email}` : undefined) : "Log in or create your account with Google or Discord."}
+      subtitle={last ? (last.email ? `Continue as ${last.email}` : undefined) : `Log in or create your account with ${providerList()}.`}
       error={error}
       message={message}
     >

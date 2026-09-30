@@ -1,10 +1,11 @@
+import { PROVIDERS, type Provider } from "./providers.ts";
+
 // Remembers who last signed in on this device so /login can offer a one-tap
 // "Continue as …" and skip provider prompts. Stays after logout on purpose;
 // "Not you?" on /login clears it.
 
+export { PROVIDERS, type Provider };
 export const LAST_LOGIN_COOKIE = "last_login";
-export const PROVIDERS = ["google", "discord"] as const;
-export type Provider = (typeof PROVIDERS)[number];
 export type LastLogin = { provider: Provider; name: string; email: string };
 
 export const encodeLastLogin = (l: LastLogin) => Buffer.from(JSON.stringify(l)).toString("base64url");
