@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14b8a6"/>
+      <stop offset="1" stop-color="#0f766e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <!-- House: roof + body, softened with a round-joined stroke -->
+  <path d="M512 252 L788 490 H728 V756 H296 V490 H236 Z"
+        fill="#ffffff" stroke="#ffffff" stroke-width="44" stroke-linejoin="round"/>
+  <!-- Check: tasks done, home handled -->
+  <polyline points="418,612 488,682 618,546"
+            fill="none" stroke="#0f766e" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
