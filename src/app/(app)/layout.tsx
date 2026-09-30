@@ -18,6 +18,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             activeId={active.household.id}
           />
           <nav className="ml-auto flex items-center gap-4 text-sm">
+            <Link href="/tasks" className="text-muted hover:text-foreground">Tasks</Link>
             <Link href="/household" className="text-muted hover:text-foreground">Household</Link>
             <form action={logout}>
               <button className="text-muted hover:text-foreground">Log out</button>

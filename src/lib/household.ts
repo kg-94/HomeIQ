@@ -7,7 +7,7 @@ export const HOUSEHOLD_COOKIE = "hid";
 export type Membership = {
   role: "owner" | "member";
   display_name: string;
-  household: { id: string; name: string; currency: string };
+  household: { id: string; name: string; currency: string; timezone: string };
 };
 
 /** Only allow same-origin relative redirects (blocks `//evil.com`). */
@@ -30,7 +30,7 @@ export async function getHouseholdContext() {
 
   const { data, error } = await supabase
     .from("household_members")
-    .select("role, display_name, household:households!inner(id, name, currency)")
+    .select("role, display_name, household:households!inner(id, name, currency, timezone)")
     .eq("user_id", user.id)
     .order("created_at");
   if (error) throw error;

@@ -100,6 +100,7 @@ export type Database = {
           currency: string
           id: string
           name: string
+          timezone: string
         }
         Insert: {
           created_at?: string
@@ -107,6 +108,7 @@ export type Database = {
           currency?: string
           id?: string
           name: string
+          timezone?: string
         }
         Update: {
           created_at?: string
@@ -114,8 +116,108 @@ export type Database = {
           currency?: string
           id?: string
           name?: string
+          timezone?: string
         }
         Relationships: []
+      }
+      task_completions: {
+        Row: {
+          completed_at: string
+          completed_by: string | null
+          due_date: string
+          household_id: string
+          id: string
+          task_id: string
+        }
+        Insert: {
+          completed_at?: string
+          completed_by?: string | null
+          due_date: string
+          household_id: string
+          id?: string
+          task_id: string
+        }
+        Update: {
+          completed_at?: string
+          completed_by?: string | null
+          due_date?: string
+          household_id?: string
+          id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_completions_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_completions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          assignee_id: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          due_date: string
+          household_id: string
+          id: string
+          notes: string | null
+          repeat_every: number | null
+          repeat_unit: string | null
+          title: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date: string
+          household_id: string
+          id?: string
+          notes?: string | null
+          repeat_every?: number | null
+          repeat_unit?: string | null
+          title: string
+        }
+        Update: {
+          assignee_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string
+          household_id?: string
+          id?: string
+          notes?: string | null
+          repeat_every?: number | null
+          repeat_unit?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_household_id_assignee_id_fkey"
+            columns: ["household_id", "assignee_id"]
+            isOneToOne: false
+            referencedRelation: "household_members"
+            referencedColumns: ["household_id", "user_id"]
+          },
+          {
+            foreignKeyName: "tasks_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -126,6 +228,7 @@ export type Database = {
         Args: { invite_token: string; member_name: string }
         Returns: string
       }
+      complete_task: { Args: { task: string }; Returns: undefined }
       create_household: {
         Args: {
           household_currency?: string
