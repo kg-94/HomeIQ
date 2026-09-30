@@ -21,9 +21,9 @@ Multi-user home-management web app: households share maintenance tasks, inventor
 - `npm test` — unit tests (`src/lib/*.test.ts`, node:test)
 
 ## Auth
-Mobile + password (Supabase phone auth), or Google / Discord OAuth. No email/password.
-Phones are E.164 in the app (`toE164` in `src/lib/phone.ts`) and stored without `+` in the DB, like `auth.users.phone`.
-Invites target a phone or an email and only redeem for the matching account (`accept_invite`).
+Google / Discord OAuth only; the first login creates the account (no separate sign-up, no passwords).
+Invites target an email and only redeem for the account with that email (`accept_invite`).
+Supabase's Email and Phone providers should stay disabled, or accounts could be created through the API directly.
 
 ## Conventions
 - Every table carries `household_id`; RLS on every table uses `is_member(household_id)`. No table ships without RLS, and every new table gets cases in `supabase/tests/rls.sql`.

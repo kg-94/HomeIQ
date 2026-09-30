@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getHouseholdContext, HOUSEHOLD_COOKIE } from "@/lib/household";
-import { toE164, toStoredPhone } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/server";
 
 const name = z.string().trim().min(1, "Name is required").max(80);
@@ -63,28 +62,19 @@ export async function acceptInvite(formData: FormData) {
   redirect("/");
 }
 
-/** Invite by mobile (phone-password users) or email (Google/Discord users). */
+/** Invite by the email of the person's Google/Discord account. */
 export async function createInvite(formData: FormData) {
-  const contact = String(formData.get("contact") ?? "").trim();
-  let target: { email: string } | { phone: string };
-  if (contact.includes("@")) {
-    const email = z.string().toLowerCase().email().safeParse(contact);
-    if (!email.success) return back("/household", "error", "Enter a valid email");
-    target = { email: email.data };
-  } else {
-    const phone = toE164(contact);
-    if (!phone) return back("/household", "error", "Enter a valid mobile number or email");
-    target = { phone: toStoredPhone(phone) };
-  }
+  const parsed = z.string().trim().toLowerCase().email("Enter a valid email").safeParse(formData.get("email"));
+  if (!parsed.success) return back("/household", "error", parsed.error.issues[0].message);
 
   const { supabase, active } = await getHouseholdContext();
   const { error } = await supabase
     .from("household_invites")
-    .insert({ household_id: active.household.id, ...target });
+    .insert({ household_id: active.household.id, email: parsed.data });
   if (error) return back("/household", "error", error.message);
 
   revalidatePath("/household");
-  back("/household", "message", `Invite created for ${contact}. Copy the link below and send it to them.`);
+  back("/household", "message", `Invite created for ${parsed.data}. Copy the link below and send it to them.`);
 }
 
 export async function revokeInvite(formData: FormData) {

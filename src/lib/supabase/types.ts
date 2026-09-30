@@ -221,36 +221,33 @@ export type Database = {
           accepted_at: string | null
           accepted_by: string | null
           created_at: string
-          email: string | null
+          email: string
           expires_at: string
           household_id: string
           id: string
           invited_by: string
-          phone: string | null
           token: string
         }
         Insert: {
           accepted_at?: string | null
           accepted_by?: string | null
           created_at?: string
-          email?: string | null
+          email: string
           expires_at?: string
           household_id: string
           id?: string
           invited_by?: string
-          phone?: string | null
           token?: string
         }
         Update: {
           accepted_at?: string | null
           accepted_by?: string | null
           created_at?: string
-          email?: string | null
+          email?: string
           expires_at?: string
           household_id?: string
           id?: string
           invited_by?: string
-          phone?: string | null
           token?: string
         }
         Relationships: [

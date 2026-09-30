@@ -21,7 +21,7 @@ export default async function InvitePage({
   return (
     <AuthShell
       title="You've been invited"
-      subtitle={`Join a household on HomeIQ as ${user?.email || `+${user?.phone}`}.`}
+      subtitle={`Join a household on HomeIQ as ${user?.email}.`}
       error={error}
     >
       <form action={acceptInvite} className="space-y-4">

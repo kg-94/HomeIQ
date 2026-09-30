@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_APP_VERSION: pkg.version,
     NEXT_PUBLIC_COMMIT: commit(),
   },
+  // Accounts are created by the first Google/Discord login on /login.
+  async redirects() {
+    return [{ source: "/signup", destination: "/login", permanent: true }];
+  },
   experimental: {
     // Receipts/manuals are uploaded through server actions; the bucket caps files at 20MB.
     serverActions: { bodySizeLimit: "21mb" },

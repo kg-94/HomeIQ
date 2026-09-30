@@ -21,7 +21,7 @@ export default async function HouseholdPage({
     isOwner
       ? supabase
           .from("household_invites")
-          .select("id, email, phone, token, expires_at")
+          .select("id, email, token, expires_at")
           .eq("household_id", hid)
           .is("accepted_at", null)
           .gt("expires_at", new Date().toISOString())
@@ -79,12 +79,12 @@ export default async function HouseholdPage({
         <section className="card">
           <h2 className="font-medium">Invite someone</h2>
           <p className="mt-1 text-sm text-muted">
-            Enter their mobile number, or the email of their Google/Discord account. Only that
-            account can use the link, and it expires after 7 days.
+            Enter the email of their Google or Discord account. Only that account can use the
+            link, and it expires after 7 days.
           </p>
           <form action={createInvite} className="mt-4 flex gap-3">
-            <label htmlFor="contact" className="sr-only">Mobile number or email</label>
-            <input id="contact" name="contact" placeholder="98765 43210 or name@gmail.com" required className="input" />
+            <label htmlFor="email" className="sr-only">Email</label>
+            <input id="email" name="email" type="email" placeholder="name@gmail.com" required className="input" />
             <button className="btn shrink-0">Create invite</button>
           </form>
 
@@ -93,7 +93,7 @@ export default async function HouseholdPage({
               {invites.map((inv) => (
                 <li key={inv.id} className="flex items-center justify-between gap-3 py-3 text-sm">
                   <span className="truncate">
-                    {inv.email ?? `+${inv.phone}`}
+                    {inv.email}
                     <span className="block text-xs text-muted">
                       Expires {new Date(inv.expires_at).toLocaleDateString()}
                     </span>

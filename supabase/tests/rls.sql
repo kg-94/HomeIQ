@@ -6,19 +6,16 @@ create extension if not exists pgtap with schema extensions;
 -- runs via `supabase db query`, which only returns the last result.
 create temp table tap (at timestamptz default clock_timestamp(), line text);
 grant all on tap to authenticated, anon;
-insert into tap (line) select plan(18);
+insert into tap (line) select plan(14);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'a@rls.test'),
   ('00000000-0000-0000-0000-00000000000b', 'b@rls.test'),
   ('00000000-0000-0000-0000-00000000000c', 'c@rls.test');
-insert into auth.users (id, phone) values
-  ('00000000-0000-0000-0000-00000000000d', '919800000004');
 
--- Supabase puts both claims in every JWT, '' when unset; phones have no '+'.
-create function pg_temp.act_as(uid uuid, email text, phone text default '') returns void language sql as $$
+create function pg_temp.act_as(uid uuid, email text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
-         set_config('request.jwt.claims', json_build_object('sub', uid, 'email', email, 'phone', phone, 'role', 'authenticated')::text, true);
+         set_config('request.jwt.claims', json_build_object('sub', uid, 'email', email, 'role', 'authenticated')::text, true);
 $$;
 
 select pg_temp.act_as('00000000-0000-0000-0000-00000000000a', 'a@rls.test');
@@ -53,7 +50,7 @@ insert into tap (line) select lives_ok(
   'owner can invite');
 
 reset role;
-create temp table invite as select token from household_invites where email is not null;
+create temp table invite as select token from household_invites;
 grant select on invite to authenticated;
 
 -- As C: cannot redeem an invite addressed to B
@@ -70,30 +67,6 @@ insert into tap (line) select is((select count(*) from households), 2::bigint, '
 
 with d as (delete from households where name = 'A home' returning 1)
 insert into tap (line) select is(count(*), 0::bigint, 'member cannot delete household') from d;
-
--- Phone invites (mobile-password users have phone but no email)
-select pg_temp.act_as('00000000-0000-0000-0000-00000000000a', 'a@rls.test');
-insert into tap (line) select throws_ok(
-  $$ insert into household_invites (household_id, email, phone)
-     select id, 'x@rls.test', '919800000004' from households where name = 'A home' $$,
-  '23514', null, 'invite targets exactly one of email/phone');
-insert into tap (line) select lives_ok(
-  $$ insert into household_invites (household_id, phone) select id, '919800000004' from households where name = 'A home' $$,
-  'owner can invite by phone');
-
-reset role;
-create temp table phone_invite as select token from household_invites where phone is not null;
-grant select on phone_invite to authenticated;
-
-select pg_temp.act_as('00000000-0000-0000-0000-00000000000c', '', '919800000003');
-insert into tap (line) select throws_ok(
-  format('select accept_invite(%L, %L)', (select token from phone_invite), 'Carol'),
-  'P0001', null, 'phone invite cannot be redeemed by other phone');
-
-select pg_temp.act_as('00000000-0000-0000-0000-00000000000d', '', '919800000004');
-insert into tap (line) select lives_ok(
-  format('select accept_invite(%L, %L)', (select token from phone_invite), 'Dev'),
-  'phone invite redeemed by matching phone');
 
 -- Anonymous
 reset role;
